@@ -1,0 +1,23 @@
+[package]
+authors = ["Zachary Golba <zachary.golba@postlight.com>"]
+categories = [
+    "api-bindings",
+    "encoding",
+    "web-programming::http-server",
+]
+description = "Rocket support for the json-api crate"
+documentation = "https://docs.rs/json-api-rocket/0.1"
+license = "MIT/Apache-2.0"
+name = "json-api-rocket"
+readme = "README.md"
+repository = "https://github.com/zacharygolba/json-api-rs"
+version = "0.1.0"
+
+[dependencies]
+rocket = "0.3"
+rocket_contrib = "0.3"
+serde = "1.0"
+serde_json = "1.0"
+
+[dependencies.json-api]
+path = "../"
