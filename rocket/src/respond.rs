@@ -3,6 +3,7 @@ use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
 use json_api::{Document, Resource};
+use json_api::doc::Data;
 use rocket::http::Status;
 use rocket::request::Request;
 use rocket::response::{Responder, Response};
@@ -48,6 +49,7 @@ impl<T: Resource> Responder<'static> for Collection<T> {
         self.into_iter()
             .map(Resource::object)
             .collect::<Result<Vec<_>, _>>()
+            .map(Data::Collection)
             .and_then(|data| Document::build().data(data).finalize())
             .map_err(|_| Status::InternalServerError)
             .and_then(with_body)
