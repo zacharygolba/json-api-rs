@@ -1,5 +1,3 @@
-mod path;
-
 pub mod page;
 pub mod sort;
 
@@ -10,11 +8,11 @@ use serde_qs;
 
 use builder;
 use error::Error;
-use value::{Key, Map, Set, Value};
+use value::{Map, Set, Value};
+use value::key::{Key, Path};
 use self::sort::Direction;
 
 pub use self::page::Page;
-pub use self::path::Path;
 pub use self::sort::Sort;
 
 #[derive(Clone, Default, Deserialize, PartialEq, Serialize)]

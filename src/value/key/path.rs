@@ -1,4 +1,5 @@
-use std::fmt::{self, Display, Formatter};
+use std::cmp::PartialEq;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::iter::FromIterator;
 use std::ops::Deref;
 use std::slice::Iter;
@@ -10,22 +11,38 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use value::Key;
 
-const SEPERATOR: u8 = '.' as u8;
-
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Path(Vec<Key>);
+/// A sequence of `.` seperated JSON API [Member Names].
+///
+/// The [Path] struct is commonly used in query params that accept a [relationship path].
+///
+/// [Member Names]: http://jsonapi.org/format/#document-member-names
+/// [Path]: ./struct.Path.html
+/// [relationship path]: http://jsonapi.org/format/#fetching-includes
+#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Path {
+    inner: Vec<Key>,
+}
 
 impl Path {
+    pub fn new() -> Self {
+        let inner = Vec::new();
+        Path { inner }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        let inner = Vec::with_capacity(capacity);
+        Path { inner }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     pub fn len(&self) -> usize {
-        let Path(ref keys) = *self;
-        let count = keys.len();
+        let count = self.inner.len();
 
         if count > 0 {
-            keys.iter()
+            self.iter()
                 .map(|key| key.len())
                 .fold(count - 1, |prev, next| prev + next)
         } else {
@@ -43,7 +60,7 @@ impl Path {
 
         self.iter().fold(bytes, |mut bytes, key| {
             if !bytes.is_empty() {
-                bytes.push(SEPERATOR);
+                bytes.push('.' as u8);
             }
 
             bytes.extend_from_slice(key.as_bytes());
@@ -57,9 +74,9 @@ impl Path {
     }
 }
 
-impl Display for Path {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+impl Debug for Path {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_list().entries(self.iter()).finish()
     }
 }
 
@@ -67,7 +84,13 @@ impl Deref for Path {
     type Target = [Key];
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.inner
+    }
+}
+
+impl Display for Path {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.write_str(&self.to_string())
     }
 }
 
@@ -88,7 +111,8 @@ impl FromIterator<Key> for Path {
     where
         I: IntoIterator<Item = Key>,
     {
-        Path(Vec::from_iter(iter))
+        let inner = Vec::from_iter(iter);
+        Path { inner }
     }
 }
 
@@ -105,7 +129,7 @@ impl IntoIterator for Path {
     type IntoIter = <Vec<Key> as IntoIterator>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+        self.inner.into_iter()
     }
 }
 
@@ -115,6 +139,26 @@ impl<'a> IntoIterator for &'a Path {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl PartialEq<String> for Path {
+    fn eq(&self, rhs: &String) -> bool {
+        self == &*rhs
+    }
+}
+
+impl PartialEq<str> for Path {
+    fn eq(&self, rhs: &str) -> bool {
+        let mut parts = rhs.split('.');
+
+        for part in self.iter().map(|key| Some(&**key)) {
+            if part != parts.next() {
+                return false;
+            }
+        }
+
+        parts.next().is_none()
     }
 }
 

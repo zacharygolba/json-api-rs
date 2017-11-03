@@ -1,8 +1,9 @@
 use std::fmt::{self, Debug, Formatter};
 
 use json_api::Error;
-use json_api::query::{self, Page, Path, Query as JsonApiQuery, Sort};
-use json_api::value::{map, set, Key, Set, Value};
+use json_api::query::{self, Page, Query as JsonApiQuery, Sort};
+use json_api::value::{map, set, Set, Value};
+use json_api::value::key::{Key, Path};
 use rocket::http::Status;
 use rocket::Outcome;
 use rocket::request::{self, FromRequest, Request};
