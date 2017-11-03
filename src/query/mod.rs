@@ -1,3 +1,5 @@
+mod path;
+
 pub mod page;
 pub mod sort;
 
@@ -8,24 +10,25 @@ use serde_qs;
 
 use builder;
 use error::Error;
-use value::{Map, Set, Value};
+use value::{Key, Map, Set, Value};
 use self::sort::Direction;
 
 pub use self::page::Page;
+pub use self::path::Path;
 pub use self::sort::Sort;
 
 #[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
 pub struct Query {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub fields: Map<Set>,
+    pub fields: Map<Set<Key>>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub filter: Map<Value>,
     #[serde(default, skip_serializing_if = "Set::is_empty")]
-    pub include: Set,
+    pub include: Set<Path>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page: Option<Page>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sort: Option<Sort>,
+    #[serde(default, skip_serializing_if = "Set::is_empty")]
+    pub sort: Set<Sort>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
@@ -55,27 +58,27 @@ pub struct QueryBuilder {
     filter: Vec<(String, Value)>,
     include: Vec<String>,
     page: Option<Page>,
-    sort: Option<(String, Direction)>,
+    sort: Vec<(String, Direction)>,
 }
 
 impl QueryBuilder {
     pub fn finalize(&mut self) -> Result<Query, Error> {
         Ok(Query {
-            fields: builder::iter(&mut self.fields, |(k, mut v)| {
-                let k = k.parse()?;
-                let v = v.drain(..)
+            fields: builder::iter(&mut self.fields, |(key, mut fields)| {
+                let key = key.parse()?;
+                let fields = fields
+                    .drain(..)
                     .map(|item| item.parse())
                     .collect::<Result<_, _>>()?;
 
-                Ok((k, v))
+                Ok((key, fields))
             })?,
-            filter: builder::iter(&mut self.filter, |(k, v)| Ok((k.parse()?, v)))?,
+            filter: builder::iter(&mut self.filter, |(key, value)| Ok((key.parse()?, value)))?,
             include: builder::iter(&mut self.include, |key| key.parse())?,
             page: builder::optional(&mut self.page),
-            sort: match self.sort.take() {
-                Some((field, direction)) => Some(Sort::new(field.parse()?, direction)),
-                None => None,
-            },
+            sort: builder::iter(&mut self.sort, |(field, direction)| {
+                Ok(Sort::new(field.parse()?, direction))
+            })?,
             _ext: (),
         })
     }
@@ -121,7 +124,7 @@ impl QueryBuilder {
     where
         F: Into<String>,
     {
-        self.sort = Some((field.into(), direction));
+        self.sort.push((field.into(), direction));
         self
     }
 }

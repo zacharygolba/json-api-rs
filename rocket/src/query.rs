@@ -1,10 +1,8 @@
 use std::fmt::{self, Debug, Formatter};
 
 use json_api::Error;
-use json_api::query::{self, Page, Query as JsonApiQuery, Sort};
-use json_api::value::{Set, Value};
-use json_api::value::map::Iter as MapIter;
-use json_api::value::set::Iter as SetIter;
+use json_api::query::{self, Page, Path, Query as JsonApiQuery, Sort};
+use json_api::value::{map, set, Key, Set, Value};
 use rocket::http::Status;
 use rocket::Outcome;
 use rocket::request::{self, FromRequest, Request};
@@ -22,15 +20,15 @@ impl Query {
         self.inner
     }
 
-    pub fn fields(&self) -> MapIter<Set> {
+    pub fn fields(&self) -> map::Iter<Set<Key>> {
         self.inner.fields.iter()
     }
 
-    pub fn filter(&self) -> MapIter<Value> {
+    pub fn filter(&self) -> map::Iter<Value> {
         self.inner.filter.iter()
     }
 
-    pub fn include(&self) -> SetIter {
+    pub fn include(&self) -> set::Iter<Path> {
         self.inner.include.iter()
     }
 
@@ -38,8 +36,8 @@ impl Query {
         self.inner.page
     }
 
-    pub fn sort(&self) -> Option<&Sort> {
-        self.inner.sort.as_ref()
+    pub fn sort(&self) -> set::Iter<Sort> {
+        self.inner.sort.iter()
     }
 }
 

@@ -5,18 +5,18 @@ use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
 use error::Error;
-use value::Key;
+use query::Path;
 
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Sort {
     pub direction: Direction,
-    pub field: Key,
+    pub field: Path,
     /// Private field for backwards compatibility.
     _ext: (),
 }
 
 impl Sort {
-    pub fn new(field: Key, direction: Direction) -> Self {
+    pub fn new(field: Path, direction: Direction) -> Self {
         Sort {
             direction,
             field,
@@ -35,12 +35,12 @@ impl Debug for Sort {
 }
 
 impl Display for Sort {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.direction == Direction::Desc {
-            Display::fmt("-", fmtr)?;
+            Display::fmt("-", f)?;
         }
 
-        Display::fmt(&self.field, fmtr)
+        Display::fmt(&self.field, f)
     }
 }
 
@@ -101,7 +101,7 @@ impl Serialize for Sort {
             value.push('-');
         }
 
-        value.push_str(&self.field);
+        value.push_str(&self.field.to_string());
         value.serialize(serializer)
     }
 }

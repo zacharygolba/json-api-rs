@@ -1,25 +1,27 @@
+use std::cmp::Eq;
 use std::fmt::{self, Debug, Display, Formatter};
+use std::hash::Hash;
 use std::iter::FromIterator;
+use std::marker::PhantomData;
 use std::ops::RangeFull;
+use std::str::FromStr;
 
+use ordermap::{self, Equivalent, Keys, OrderMap};
 use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, Visitor};
 
-use super::Key;
-use super::map::{self, Keys, Map};
-
-#[derive(Clone, Default, PartialEq)]
-pub struct Set {
-    inner: Map<()>,
+#[derive(Clone, Eq, PartialEq)]
+pub struct Set<T: Eq + FromStr + Hash> {
+    inner: OrderMap<T, ()>,
 }
 
-impl Set {
+impl<T: Eq + FromStr + Hash> Set<T> {
     pub fn new() -> Self {
         Default::default()
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        let inner = Map::with_capacity(capacity);
+        let inner = OrderMap::with_capacity(capacity);
         Set { inner }
     }
 
@@ -27,16 +29,19 @@ impl Set {
         self.inner.clear();
     }
 
-    pub fn contains(&self, key: &str) -> bool {
+    pub fn contains<Q>(&self, key: &Q) -> bool
+    where
+        Q: Hash + Equivalent<T>,
+    {
         self.inner.contains_key(key)
     }
 
-    pub fn drain(&mut self, range: RangeFull) -> Drain {
+    pub fn drain(&mut self, range: RangeFull) -> Drain<T> {
         let iter = self.inner.drain(range);
         Drain { iter }
     }
 
-    pub fn insert(&mut self, key: Key) -> bool {
+    pub fn insert(&mut self, key: T) -> bool {
         self.inner.insert(key, ()).is_none()
     }
 
@@ -44,7 +49,7 @@ impl Set {
         self.len() == 0
     }
 
-    pub fn iter(&self) -> Iter {
+    pub fn iter(&self) -> Iter<T> {
         let iter = self.inner.keys();
         Iter { iter }
     }
@@ -53,18 +58,28 @@ impl Set {
         self.inner.len()
     }
 
-    pub fn remove(&mut self, key: &str) -> bool {
+    pub fn remove<Q>(&mut self, key: &Q) -> bool
+    where
+        Q: Hash + Equivalent<T>,
+    {
         self.inner.remove(key).is_some()
     }
 }
 
-impl Debug for Set {
+impl<T: Debug + Eq + FromStr + Hash> Debug for Set<T> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.debug_set().entries(self.iter()).finish()
     }
 }
 
-impl Display for Set {
+impl<T: Eq + FromStr + Hash> Default for Set<T> {
+    fn default() -> Self {
+        let inner = Default::default();
+        Set { inner }
+    }
+}
+
+impl<T: Display + Eq + FromStr + Hash> Display for Set<T> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let sep = ',';
 
@@ -80,29 +95,29 @@ impl Display for Set {
     }
 }
 
-impl Extend<Key> for Set {
+impl<T: Eq + FromStr + Hash> Extend<T> for Set<T> {
     fn extend<I>(&mut self, iter: I)
     where
-        I: IntoIterator<Item = Key>,
+        I: IntoIterator<Item = T>,
     {
         let iter = iter.into_iter().map(|key| (key, ()));
         self.inner.extend(iter);
     }
 }
 
-impl FromIterator<Key> for Set {
+impl<T: Eq + FromStr + Hash> FromIterator<T> for Set<T> {
     fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = Key>,
+        I: IntoIterator<Item = T>,
     {
         let inner = iter.into_iter().map(|key| (key, ())).collect();
         Set { inner }
     }
 }
 
-impl IntoIterator for Set {
-    type Item = Key;
-    type IntoIter = IntoIter;
+impl<T: Eq + FromStr + Hash> IntoIterator for Set<T> {
+    type Item = T;
+    type IntoIter = IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
         let iter = self.inner.into_iter();
@@ -110,26 +125,54 @@ impl IntoIterator for Set {
     }
 }
 
-impl<'a> IntoIterator for &'a Set {
-    type Item = &'a Key;
-    type IntoIter = Iter<'a>;
+impl<'a, T: Eq + FromStr + Hash> IntoIterator for &'a Set<T> {
+    type Item = &'a T;
+    type IntoIter = Iter<'a, T>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 
-impl<'de> Deserialize<'de> for Set {
+impl<'de, T, E> Deserialize<'de> for Set<T>
+where
+    E: Display + 'de,
+    T: Deserialize<'de> + Eq + FromStr<Err = E> + Hash + 'de,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         use serde::de::Error;
 
-        struct SetVisitor;
+        struct SetVisitor<'de, T, D>
+        where
+            D: Display + 'de,
+            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash + 'de,
+        {
+            err: PhantomData<&'de D>,
+            key: PhantomData<&'de T>,
+        }
 
-        impl<'de> Visitor<'de> for SetVisitor {
-            type Value = Set;
+        impl<'de, T, D> SetVisitor<'de, T, D>
+        where
+            D: Display,
+            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash,
+        {
+            fn new() -> Self {
+                SetVisitor {
+                    err: PhantomData,
+                    key: PhantomData,
+                }
+            }
+        }
+
+        impl<'de, T, D> Visitor<'de> for SetVisitor<'de, T, D>
+        where
+            D: Display,
+            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash,
+        {
+            type Value = Set<T>;
 
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_str("a sequence of json api member names")
@@ -142,11 +185,11 @@ impl<'de> Deserialize<'de> for Set {
             }
         }
 
-        deserializer.deserialize_seq(SetVisitor)
+        deserializer.deserialize_seq(SetVisitor::new())
     }
 }
 
-impl Serialize for Set {
+impl<T: Display + Eq + FromStr + Hash> Serialize for Set<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -155,12 +198,12 @@ impl Serialize for Set {
     }
 }
 
-pub struct Drain<'a> {
-    iter: map::Drain<'a, ()>,
+pub struct Drain<'a, T: 'a> {
+    iter: ordermap::Drain<'a, T, ()>,
 }
 
-impl<'a> Iterator for Drain<'a> {
-    type Item = Key;
+impl<'a, T> Iterator for Drain<'a, T> {
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|(key, _)| key)
@@ -171,12 +214,12 @@ impl<'a> Iterator for Drain<'a> {
     }
 }
 
-pub struct Iter<'a> {
-    iter: Keys<'a, ()>,
+pub struct Iter<'a, T: 'a> {
+    iter: Keys<'a, T, ()>,
 }
 
-impl<'a> Iterator for Iter<'a> {
-    type Item = &'a Key;
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -199,24 +242,24 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Iter<'a> {
+impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a> ExactSizeIterator for Iter<'a> {
+impl<'a, T> ExactSizeIterator for Iter<'a, T> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct IntoIter {
-    iter: map::IntoIter<()>,
+pub struct IntoIter<T> {
+    iter: ordermap::IntoIter<T, ()>,
 }
 
-impl Iterator for IntoIter {
-    type Item = Key;
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|(key, _)| key)
@@ -239,13 +282,13 @@ impl Iterator for IntoIter {
     }
 }
 
-impl<'a> DoubleEndedIterator for IntoIter {
+impl<T> DoubleEndedIterator for IntoIter<T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(|(key, _)| key)
     }
 }
 
-impl ExactSizeIterator for IntoIter {
+impl<T> ExactSizeIterator for IntoIter<T> {
     fn len(&self) -> usize {
         self.iter.len()
     }
