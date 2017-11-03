@@ -67,10 +67,10 @@ impl<'de> Deserialize<'de> for Page {
                 while let Some(key) = access.next_key()? {
                     match key {
                         Field::Number if number.is_some() => {
-                            return Err(Error::duplicate_field("href"));
+                            return Err(Error::duplicate_field("number"));
                         }
                         Field::Size if size.is_some() => {
-                            return Err(Error::duplicate_field("meta"));
+                            return Err(Error::duplicate_field("size"));
                         }
                         Field::Number => {
                             number = access.next_value()?;
