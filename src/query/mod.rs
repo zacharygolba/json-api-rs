@@ -18,9 +18,9 @@ pub use self::sort::Sort;
 #[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
 pub struct Query {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub fields: Map<Set<Key>>,
+    pub fields: Map<Key, Set<Key>>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub filter: Map<Value>,
+    pub filter: Map<Path, Value>,
     #[serde(default, skip_serializing_if = "Set::is_empty")]
     pub include: Set<Path>,
     #[serde(skip_serializing_if = "Option::is_none")]

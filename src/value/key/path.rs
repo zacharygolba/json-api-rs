@@ -1,5 +1,4 @@
-use std::cmp::PartialEq;
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::iter::FromIterator;
 use std::ops::Deref;
 use std::slice::Iter;
@@ -18,20 +17,16 @@ use value::Key;
 /// [Member Names]: http://jsonapi.org/format/#document-member-names
 /// [Path]: ./struct.Path.html
 /// [relationship path]: http://jsonapi.org/format/#fetching-includes
-#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Path {
-    inner: Vec<Key>,
-}
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Path(Vec<Key>);
 
 impl Path {
     pub fn new() -> Self {
-        let inner = Vec::new();
-        Path { inner }
+        Default::default()
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        let inner = Vec::with_capacity(capacity);
-        Path { inner }
+        Path(Vec::with_capacity(capacity))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -39,10 +34,11 @@ impl Path {
     }
 
     pub fn len(&self) -> usize {
-        let count = self.inner.len();
+        let Path(ref keys) = *self;
+        let count = keys.len();
 
         if count > 0 {
-            self.iter()
+            keys.iter()
                 .map(|key| key.len())
                 .fold(count - 1, |prev, next| prev + next)
         } else {
@@ -60,7 +56,7 @@ impl Path {
 
         self.iter().fold(bytes, |mut bytes, key| {
             if !bytes.is_empty() {
-                bytes.push('.' as u8);
+                bytes.push(b'.');
             }
 
             bytes.extend_from_slice(key.as_bytes());
@@ -74,17 +70,11 @@ impl Path {
     }
 }
 
-impl Debug for Path {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_list().entries(self.iter()).finish()
-    }
-}
-
 impl Deref for Path {
     type Target = [Key];
 
     fn deref(&self) -> &Self::Target {
-        &self.inner
+        &self.0
     }
 }
 
@@ -111,8 +101,7 @@ impl FromIterator<Key> for Path {
     where
         I: IntoIterator<Item = Key>,
     {
-        let inner = Vec::from_iter(iter);
-        Path { inner }
+        Path(Vec::from_iter(iter))
     }
 }
 
@@ -129,7 +118,7 @@ impl IntoIterator for Path {
     type IntoIter = <Vec<Key> as IntoIterator>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
+        self.0.into_iter()
     }
 }
 

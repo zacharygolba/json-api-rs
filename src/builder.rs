@@ -1,5 +1,7 @@
 use std::iter::FromIterator;
 use std::mem;
+use std::hash::Hash;
+use std::str::FromStr;
 
 use error::Error;
 use value::Map;
@@ -8,9 +10,10 @@ pub fn default<T: Default>(value: &mut Option<T>) -> T {
     mem::replace(value, None).unwrap_or_default()
 }
 
-pub fn map<F, T, U>(data: &mut Vec<(String, T)>, f: F) -> Result<Map<U>, Error>
+pub fn map<F, K, T, U>(data: &mut Vec<(String, T)>, f: F) -> Result<Map<K, U>, Error>
 where
     F: Fn(T) -> Result<U, Error>,
+    K: Eq + FromStr<Err = Error> + Hash,
 {
     data.drain(..)
         .map(|(key, value)| Ok((key.parse()?, f(value)?)))

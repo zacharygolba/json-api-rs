@@ -1,16 +1,16 @@
 use builder;
 use doc::{Data, Identifier, Link};
 use error::Error;
-use value::{Map, Value};
+use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Relationship {
     pub data: Data<Identifier>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),

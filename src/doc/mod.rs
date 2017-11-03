@@ -11,7 +11,7 @@ use serde::ser::Serialize;
 
 use builder;
 use sealed::Sealed;
-use value::{Map, Value};
+use value::{Key, Map, Value};
 
 pub use self::error::Error;
 pub use self::ident::Identifier;
@@ -31,9 +31,9 @@ pub struct Document<T: PrimaryData> {
     #[serde(default)]
     pub jsonapi: JsonApi,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
@@ -127,9 +127,9 @@ pub struct ErrorDocument {
     #[serde(default)]
     pub jsonapi: JsonApi,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),

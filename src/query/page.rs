@@ -39,7 +39,7 @@ impl<'de> Deserialize<'de> for Page {
     {
         use serde::de::{Error, MapAccess, Visitor};
 
-        const FIELDS: &'static [&'static str] = &["number", "size"];
+        const FIELDS: &[&str] = &["number", "size"];
 
         #[derive(Debug, Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]

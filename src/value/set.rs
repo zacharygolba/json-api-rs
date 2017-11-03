@@ -1,4 +1,3 @@
-use std::cmp::Eq;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
@@ -6,22 +5,24 @@ use std::marker::PhantomData;
 use std::ops::RangeFull;
 use std::str::FromStr;
 
-use ordermap::{self, Equivalent, Keys, OrderMap};
+use ordermap::Equivalent;
 use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, Visitor};
 
+use value::map::{self, Keys, Map};
+
 #[derive(Clone, Eq, PartialEq)]
-pub struct Set<T: Eq + FromStr + Hash> {
-    inner: OrderMap<T, ()>,
+pub struct Set<T: Eq + Hash> {
+    inner: Map<T, ()>,
 }
 
-impl<T: Eq + FromStr + Hash> Set<T> {
+impl<T: Eq + Hash> Set<T> {
     pub fn new() -> Self {
         Default::default()
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        let inner = OrderMap::with_capacity(capacity);
+        let inner = Map::with_capacity(capacity);
         Set { inner }
     }
 
@@ -31,7 +32,7 @@ impl<T: Eq + FromStr + Hash> Set<T> {
 
     pub fn contains<Q>(&self, key: &Q) -> bool
     where
-        Q: Hash + Equivalent<T>,
+        Q: Equivalent<T> + Hash,
     {
         self.inner.contains_key(key)
     }
@@ -60,7 +61,7 @@ impl<T: Eq + FromStr + Hash> Set<T> {
 
     pub fn remove<Q>(&mut self, key: &Q) -> bool
     where
-        Q: Hash + Equivalent<T>,
+        Q: Equivalent<T> + Hash,
     {
         self.inner.remove(key).is_some()
     }
@@ -72,14 +73,14 @@ impl<T: Debug + Eq + FromStr + Hash> Debug for Set<T> {
     }
 }
 
-impl<T: Eq + FromStr + Hash> Default for Set<T> {
+impl<T: Eq + Hash> Default for Set<T> {
     fn default() -> Self {
         let inner = Default::default();
         Set { inner }
     }
 }
 
-impl<T: Display + Eq + FromStr + Hash> Display for Set<T> {
+impl<T: Display + Eq + Hash> Display for Set<T> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let sep = ',';
 
@@ -115,7 +116,7 @@ impl<T: Eq + FromStr + Hash> FromIterator<T> for Set<T> {
     }
 }
 
-impl<T: Eq + FromStr + Hash> IntoIterator for Set<T> {
+impl<T: Eq + Hash> IntoIterator for Set<T> {
     type Item = T;
     type IntoIter = IntoIter<Self::Item>;
 
@@ -125,7 +126,7 @@ impl<T: Eq + FromStr + Hash> IntoIterator for Set<T> {
     }
 }
 
-impl<'a, T: Eq + FromStr + Hash> IntoIterator for &'a Set<T> {
+impl<'a, T: Eq + Hash> IntoIterator for &'a Set<T> {
     type Item = &'a T;
     type IntoIter = Iter<'a, T>;
 
@@ -189,7 +190,7 @@ where
     }
 }
 
-impl<T: Display + Eq + FromStr + Hash> Serialize for Set<T> {
+impl<T: Display + Eq + Hash> Serialize for Set<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -199,7 +200,7 @@ impl<T: Display + Eq + FromStr + Hash> Serialize for Set<T> {
 }
 
 pub struct Drain<'a, T: 'a> {
-    iter: ordermap::Drain<'a, T, ()>,
+    iter: map::Drain<'a, T, ()>,
 }
 
 impl<'a, T> Iterator for Drain<'a, T> {
@@ -255,7 +256,7 @@ impl<'a, T> ExactSizeIterator for Iter<'a, T> {
 }
 
 pub struct IntoIter<T> {
-    iter: ordermap::IntoIter<T, ()>,
+    iter: map::IntoIter<T, ()>,
 }
 
 impl<T> Iterator for IntoIter<T> {

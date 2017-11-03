@@ -21,11 +21,11 @@ impl Query {
         self.inner
     }
 
-    pub fn fields(&self) -> map::Iter<Set<Key>> {
+    pub fn fields(&self) -> map::Iter<Key, Set<Key>> {
         self.inner.fields.iter()
     }
 
-    pub fn filter(&self) -> map::Iter<Value> {
+    pub fn filter(&self) -> map::Iter<Path, Value> {
         self.inner.filter.iter()
     }
 

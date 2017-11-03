@@ -24,7 +24,7 @@ pub enum Value {
     Array(Vec<Value>),
     Bool(bool),
     Number(Number),
-    Object(Map<Value>),
+    Object(Map<Key, Value>),
     String(String),
 }
 

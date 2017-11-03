@@ -7,16 +7,16 @@ use value::{Key, Map, Value};
 #[serde(deny_unknown_fields)]
 pub struct Object {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub attributes: Map<Value>,
+    pub attributes: Map<Key, Value>,
     pub id: String,
     #[serde(rename = "type")]
     pub kind: Key,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub relationships: Map<Relationship>,
+    pub relationships: Map<Key, Relationship>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
