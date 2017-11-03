@@ -51,7 +51,7 @@ impl JsonApiBuilder {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Version {
     /// Version 1.0
     V1,

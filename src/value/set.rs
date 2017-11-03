@@ -1,14 +1,14 @@
-use std::fmt::{self, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::iter::FromIterator;
 use std::ops::RangeFull;
 
-use serde::ser::{Serialize, SerializeSeq, Serializer};
-use serde::de::{self, Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer, Visitor};
 
 use super::Key;
 use super::map::{self, Keys, Map};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Set {
     inner: Map<()>,
 }
@@ -58,6 +58,28 @@ impl Set {
     }
 }
 
+impl Debug for Set {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.debug_set().entries(self.iter()).finish()
+    }
+}
+
+impl Display for Set {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let sep = ',';
+
+        for (idx, key) in self.iter().enumerate() {
+            if idx > 0 {
+                Display::fmt(&sep, f)?;
+            }
+
+            Display::fmt(key, f)?;
+        }
+
+        Ok(())
+    }
+}
+
 impl Extend<Key> for Set {
     fn extend<I>(&mut self, iter: I)
     where
@@ -102,6 +124,8 @@ impl<'de> Deserialize<'de> for Set {
     where
         D: Deserializer<'de>,
     {
+        use serde::de::Error;
+
         struct SetVisitor;
 
         impl<'de> Visitor<'de> for SetVisitor {
@@ -111,17 +135,10 @@ impl<'de> Deserialize<'de> for Set {
                 f.write_str("a sequence of json api member names")
             }
 
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: SeqAccess<'de>,
-            {
-                let mut set = Set::with_capacity(seq.size_hint().unwrap_or(0));
-
-                while let Some(value) = seq.next_element::<String>()? {
-                    set.insert(value.parse().map_err(de::Error::custom)?);
-                }
-
-                Ok(set)
+            fn visit_str<E: Error>(self, data: &str) -> Result<Self::Value, E> {
+                data.split(',')
+                    .map(|item| item.trim().parse().map_err(Error::custom))
+                    .collect()
             }
         }
 
@@ -134,13 +151,7 @@ impl Serialize for Set {
     where
         S: Serializer,
     {
-        let mut state = serializer.serialize_seq(Some(self.len()))?;
-
-        for key in self {
-            state.serialize_element(key)?;
-        }
-
-        state.end()
+        serializer.serialize_str(&self.to_string())
     }
 }
 

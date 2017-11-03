@@ -2,10 +2,12 @@
 extern crate error_chain;
 extern crate http;
 extern crate ordermap;
+extern crate percent_encoding;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate serde_qs;
 
 mod builder;
 mod resource;
@@ -17,6 +19,7 @@ mod sealed {
 
 pub mod doc;
 pub mod error;
+pub mod query;
 pub mod value;
 
 #[doc(inline)]

@@ -1,3 +1,4 @@
+use std::iter::FromIterator;
 use std::mem;
 
 use error::Error;
@@ -24,8 +25,9 @@ pub fn required<T>(name: &str, value: &mut Option<T>) -> Result<T, Error> {
     mem::replace(value, None).ok_or_else(|| Error::missing_field(name))
 }
 
-pub fn vec<F, T, U>(data: &mut Vec<T>, f: F) -> Result<Vec<U>, Error>
+pub fn iter<F, T, U, C>(data: &mut Vec<T>, f: F) -> Result<C, Error>
 where
+    C: FromIterator<U>,
     F: Fn(T) -> Result<U, Error>,
 {
     data.drain(..).map(f).collect()

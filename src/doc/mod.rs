@@ -57,7 +57,7 @@ pub struct DocumentBuilder<T: PrimaryData> {
 impl<T: PrimaryData> DocumentBuilder<T> {
     pub fn finalize(&mut self) -> Result<Document<T>, ::error::Error> {
         let data = builder::required("data", &mut self.data)?;
-        let included = builder::vec(&mut self.included, Ok)?;
+        let included = builder::iter(&mut self.included, Ok)?;
         let jsonapi = builder::default(&mut self.jsonapi);
         let links = builder::map(&mut self.links, Ok)?;
         let meta = builder::map(&mut self.meta, Ok)?;
@@ -152,7 +152,7 @@ pub struct ErrorDocumentBuilder {
 
 impl ErrorDocumentBuilder {
     pub fn finalize(&mut self) -> Result<ErrorDocument, ::error::Error> {
-        let errors = builder::vec(&mut self.errors, Ok)?;
+        let errors = builder::iter(&mut self.errors, Ok)?;
         let jsonapi = builder::default(&mut self.jsonapi);
         let links = builder::map(&mut self.links, Ok)?;
         let meta = builder::map(&mut self.meta, Ok)?;

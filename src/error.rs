@@ -1,8 +1,10 @@
 use std::fmt::Display;
+use std::str::Utf8Error;
 
 use http::status::InvalidStatusCode as InvalidStatusCodeError;
 use http::uri::InvalidUri as InvalidUriError;
 use serde_json::Error as JsonError;
+use serde_qs::Error as QueryError;
 use serde::de;
 
 error_chain!{
@@ -10,6 +12,8 @@ error_chain!{
         InvalidStatusCode(InvalidStatusCodeError);
         InvalidUri(InvalidUriError);
         Json(JsonError);
+        Query(QueryError);
+        Utf8(Utf8Error);
     }
 
     errors {
@@ -19,7 +23,7 @@ error_chain!{
         }
 
         MissingField(name: String) {
-            description("TODO")
+            description("A struct was built without a required field.")
             display(r#"missing required field "{}""#, name)
         }
 

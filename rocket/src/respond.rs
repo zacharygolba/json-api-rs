@@ -138,7 +138,7 @@ impl<T: Resource> Responder<'static> for Member<T> {
     }
 }
 
-pub fn with_body<T>(value: T) -> Result<Response<'static>, Status>
+pub(crate) fn with_body<T>(value: T) -> Result<Response<'static>, Status>
 where
     T: Serialize,
 {

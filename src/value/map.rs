@@ -1,5 +1,6 @@
 use std::iter::FromIterator;
 use std::ops::RangeFull;
+use std::fmt::{self, Debug, Formatter};
 
 use ordermap::{self, OrderMap};
 use serde::de::{Deserialize, Deserializer};
@@ -7,7 +8,7 @@ use serde::ser::{Serialize, Serializer};
 
 use super::Key;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Map<T> {
     inner: OrderMap<Key, T>,
 }
@@ -78,6 +79,12 @@ impl<T> Map<T> {
     pub fn values_mut(&mut self) -> ValuesMut<T> {
         let iter = self.inner.values_mut();
         ValuesMut { iter }
+    }
+}
+
+impl<T: Debug> Debug for Map<T> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.debug_map().entries(self.iter()).finish()
     }
 }
 
