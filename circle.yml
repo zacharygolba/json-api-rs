@@ -18,4 +18,6 @@ jobs:
       - save_cache:
           key: cache-{{ checksum "circle.yml" }}
           paths:
+            - /usr/local/bin/kcov
+            - /usr/local/bin/kcov-system-daemon
             - /usr/local/cargo
