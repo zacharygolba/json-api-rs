@@ -5,7 +5,6 @@ jobs:
       - image: rust
     environment:
       - NIGHTLY: nightly-2017-10-31
-      - RUSTFLAGS: -C link-dead-code
     parallelism: 3
     steps:
       - checkout

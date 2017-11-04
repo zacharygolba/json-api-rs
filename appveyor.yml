@@ -6,11 +6,12 @@ cache:
   - C:\Users\appveyor\.cargo
 environment:
   global:
+    CARGO_HOME: C:\Users\appveyor\.cargo
     NIGHTLY: nightly-2017-10-31
   matrix:
     - DEFAULT_TOOLCHAIN: stable
     - DEFAULT_TOOLCHAIN: beta
-    - DEFAULT_TOOLCHAIN: $NIGHTLY
+    - DEFAULT_TOOLCHAIN: nightly-2017-10-31
 install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
   - rustup-init.exe -y
