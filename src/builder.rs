@@ -1,6 +1,6 @@
+use std::hash::Hash;
 use std::iter::FromIterator;
 use std::mem;
-use std::hash::Hash;
 use std::str::FromStr;
 
 use error::Error;

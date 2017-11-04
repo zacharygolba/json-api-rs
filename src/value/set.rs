@@ -6,8 +6,8 @@ use std::ops::RangeFull;
 use std::str::FromStr;
 
 use ordermap::Equivalent;
-use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, Visitor};
+use serde::ser::{Serialize, Serializer};
 
 use value::map::{self, Keys, Map};
 
