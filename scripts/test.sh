@@ -43,4 +43,6 @@ if $CIRCLECI; then
   else
     run_plugin stable kcov --lib --no-clean-rebuild
   fi
+
+  run bash <(curl -s https://codecov.io/bash)
 fi
