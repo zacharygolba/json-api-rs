@@ -28,3 +28,19 @@ else
   run_plugin $NIGHTLY clippy
   run cargo test
 fi
+
+if $CIRCLECI; then
+  if ! [ -f /usr/local/bin/kcov ]; then
+    run scripts/install_kcov.sh
+  fi
+
+  if ! has_plugin kcov; then
+    run cargo install cargo-kcov
+  fi
+
+  if [ $DEFAULT_TOOLCHAIN == $NIGHTLY ]; then
+    run_plugin $NIGHTLY kcov --all --lib --no-clean-rebuild
+  else
+    run_plugin stable kcov --lib --no-clean-rebuild
+  fi
+fi
