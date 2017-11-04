@@ -10,4 +10,4 @@ jobs:
       - checkout
       - run:
           name: Test
-          command: ./scripts/test.sh
+          command: scripts/test.sh
