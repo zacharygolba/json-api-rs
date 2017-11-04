@@ -30,7 +30,7 @@ function run() {
   rm $OUTPUT
 }
 
-function has-plugin() {
+function has_plugin() {
   if [ -f "$CARGO_BIN/cargo-$1" ]; then
     true
   else
@@ -38,7 +38,7 @@ function has-plugin() {
   fi
 }
 
-function run-plugin() {
+function run_plugin() {
   local toolchain=$1; shift
   local cmd="cargo +$toolchain $@"
 
@@ -46,7 +46,7 @@ function run-plugin() {
     cmd="cargo $@"
   fi
 
-  if has-plugin $1; then
+  if has_plugin $1; then
     run $cmd
   else
     echo -e "$SKIP $cmd (not found in $CARGO_BIN)"
