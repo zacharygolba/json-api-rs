@@ -8,6 +8,13 @@ jobs:
     parallelism: 3
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - cache-
       - run:
           name: Test
           command: scripts/test.sh
+      - save_cache:
+          key: cache-{{ epoch }}
+          paths:
+            - /usr/local/cargo

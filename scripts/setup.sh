@@ -3,7 +3,7 @@
 set -e
 
 CARGO_BIN="$CARGO_HOME/bin"
-OUTPUT="$TMPDIR/stderr.log"
+OUTPUT="$TMPDIR/output.log"
 
 EXEC="\u001b[46m\u001b[30m  EXEC  \u001b[39m\u001b[49m"
 FAIL="\u001b[41m\u001b[30m  FAIL  \u001b[39m\u001b[49m"
