@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: rust
+    environment:
+      - NIGHTLY: nightly
+    working_directory: ~/json-api-rs
+    steps:
+      - checkout
+      - run:
+          name: Test
+          command: ./scripts/test.sh
