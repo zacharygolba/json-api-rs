@@ -19,6 +19,9 @@ repository = "zacharygolba/json-api-rs"
 [badges.circle-ci]
 repository = "zacharygolba/json-api-rs"
 
+[badges.codecov]
+repository = "zacharygolba/json-api-rs"
+
 [dependencies]
 rocket = "0.3"
 rocket_contrib = "0.3"
