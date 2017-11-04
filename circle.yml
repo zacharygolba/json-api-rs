@@ -10,7 +10,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - cache-
+            - cache-{{ checksum "circle.yml" }}
       - run:
           name: Test
           command: scripts/test.sh
