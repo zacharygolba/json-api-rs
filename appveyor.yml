@@ -3,7 +3,7 @@ branches:
   only:
     - master
 cache:
-  - C:\Users\appveyor\.cargo
+  - C:\Users\appveyor\.cargo -> appveyor.yml
 environment:
   global:
     CARGO_HOME: C:\Users\appveyor\.cargo
