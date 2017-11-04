@@ -11,7 +11,7 @@ use serde::ser::Serialize;
 
 use builder;
 use sealed::Sealed;
-use value::{Map, Value};
+use value::{Key, Map, Value};
 
 pub use self::error::Error;
 pub use self::ident::Identifier;
@@ -31,9 +31,9 @@ pub struct Document<T: PrimaryData> {
     #[serde(default)]
     pub jsonapi: JsonApi,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
@@ -57,7 +57,7 @@ pub struct DocumentBuilder<T: PrimaryData> {
 impl<T: PrimaryData> DocumentBuilder<T> {
     pub fn finalize(&mut self) -> Result<Document<T>, ::error::Error> {
         let data = builder::required("data", &mut self.data)?;
-        let included = builder::vec(&mut self.included, Ok)?;
+        let included = builder::iter(&mut self.included, Ok)?;
         let jsonapi = builder::default(&mut self.jsonapi);
         let links = builder::map(&mut self.links, Ok)?;
         let meta = builder::map(&mut self.meta, Ok)?;
@@ -127,9 +127,9 @@ pub struct ErrorDocument {
     #[serde(default)]
     pub jsonapi: JsonApi,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
@@ -152,7 +152,7 @@ pub struct ErrorDocumentBuilder {
 
 impl ErrorDocumentBuilder {
     pub fn finalize(&mut self) -> Result<ErrorDocument, ::error::Error> {
-        let errors = builder::vec(&mut self.errors, Ok)?;
+        let errors = builder::iter(&mut self.errors, Ok)?;
         let jsonapi = builder::default(&mut self.jsonapi);
         let links = builder::map(&mut self.links, Ok)?;
         let meta = builder::map(&mut self.meta, Ok)?;

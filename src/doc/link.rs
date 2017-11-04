@@ -8,12 +8,12 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use builder;
 use error::Error;
-use value::{Map, Value};
+use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Link {
     pub href: Uri,
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     /// Private field for backwards compatibility.
     _ext: (),
 }

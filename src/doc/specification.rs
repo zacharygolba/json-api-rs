@@ -6,13 +6,13 @@ use serde::ser::{Serialize, Serializer};
 
 use builder;
 use error::Error;
-use value::{Map, Value};
+use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct JsonApi {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     pub version: Version,
     #[serde(skip)]
     _ext: (),
@@ -51,7 +51,7 @@ impl JsonApiBuilder {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Version {
     /// Version 1.0
     V1,

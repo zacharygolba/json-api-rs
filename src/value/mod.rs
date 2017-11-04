@@ -1,5 +1,4 @@
-mod key;
-
+pub mod key;
 pub mod map;
 pub mod set;
 
@@ -25,7 +24,7 @@ pub enum Value {
     Array(Vec<Value>),
     Bool(bool),
     Number(Number),
-    Object(Map<Value>),
+    Object(Map<Key, Value>),
     String(String),
 }
 

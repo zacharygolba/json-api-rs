@@ -1,6 +1,6 @@
 use builder;
 use doc::Link;
-use value::{Map, StatusCode, Value};
+use value::{Key, Map, StatusCode, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -12,9 +12,9 @@ pub struct Error {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Link>,
+    pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Value>,
+    pub meta: Map<Key, Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<Source>,
     #[serde(skip_serializing_if = "Option::is_none", with = "serde_status")]

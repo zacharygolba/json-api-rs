@@ -1,18 +1,24 @@
 use std::iter::FromIterator;
 use std::ops::RangeFull;
+use std::fmt::{self, Debug, Formatter};
+use std::hash::Hash;
 
-use ordermap::{self, OrderMap};
+use ordermap::{self, Equivalent, OrderMap};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use super::Key;
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Map<T> {
-    inner: OrderMap<Key, T>,
+#[derive(Clone, Eq, PartialEq)]
+pub struct Map<K, V>
+where
+    K: Eq + Hash,
+{
+    inner: OrderMap<K, V>,
 }
 
-impl<T> Map<T> {
+impl<K, V> Map<K, V>
+where
+    K: Eq + Hash,
+{
     pub fn new() -> Self {
         Default::default()
     }
@@ -26,34 +32,40 @@ impl<T> Map<T> {
         self.inner.clear();
     }
 
-    pub fn contains_key(&self, key: &str) -> bool {
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        Q: Equivalent<K> + Hash,
+    {
         self.inner.contains_key(key)
     }
 
-    pub fn drain(&mut self, range: RangeFull) -> Drain<T> {
+    pub fn drain(&mut self, range: RangeFull) -> Drain<K, V> {
         let iter = self.inner.drain(range);
         Drain { iter }
     }
 
-    pub fn get(&self, key: &str) -> Option<&T> {
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        Q: Equivalent<K> + Hash,
+    {
         self.inner.get(key)
     }
 
-    pub fn insert(&mut self, key: Key, value: T) -> Option<T> {
+    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
         self.inner.insert(key, value)
     }
 
-    pub fn iter(&self) -> Iter<T> {
+    pub fn iter(&self) -> Iter<K, V> {
         let iter = self.inner.iter();
         Iter { iter }
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<T> {
+    pub fn iter_mut(&mut self) -> IterMut<K, V> {
         let iter = self.inner.iter_mut();
         IterMut { iter }
     }
 
-    pub fn keys(&self) -> Keys<T> {
+    pub fn keys(&self) -> Keys<K, V> {
         let iter = self.inner.keys();
         Keys { iter }
     }
@@ -66,79 +78,110 @@ impl<T> Map<T> {
         self.len() == 0
     }
 
-    pub fn remove(&mut self, key: &str) -> Option<T> {
+    pub fn remove<Q>(&mut self, key: &Q) -> Option<V>
+    where
+        Q: Equivalent<K> + Hash,
+    {
         self.inner.remove(key)
     }
 
-    pub fn values(&self) -> Values<T> {
+    pub fn values(&self) -> Values<K, V> {
         let iter = self.inner.values();
         Values { iter }
     }
 
-    pub fn values_mut(&mut self) -> ValuesMut<T> {
+    pub fn values_mut(&mut self) -> ValuesMut<K, V> {
         let iter = self.inner.values_mut();
         ValuesMut { iter }
     }
 }
 
-impl<T> Default for Map<T> {
+impl<K, V> Debug for Map<K, V>
+where
+    K: Debug + Eq + Hash,
+    V: Debug,
+{
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.debug_map().entries(self.iter()).finish()
+    }
+}
+
+impl<K, V> Default for Map<K, V>
+where
+    K: Eq + Hash,
+{
     fn default() -> Self {
         let inner = Default::default();
         Map { inner }
     }
 }
 
-impl<T> Extend<(Key, T)> for Map<T> {
+impl<K, V> Extend<(K, V)> for Map<K, V>
+where
+    K: Eq + Hash,
+{
     fn extend<I>(&mut self, iter: I)
     where
-        I: IntoIterator<Item = (Key, T)>,
+        I: IntoIterator<Item = (K, V)>,
     {
         self.inner.extend(iter);
     }
 }
 
-impl<T> FromIterator<(Key, T)> for Map<T> {
+impl<K, V> FromIterator<(K, V)> for Map<K, V>
+where
+    K: Eq + Hash,
+{
     fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = (Key, T)>,
+        I: IntoIterator<Item = (K, V)>,
     {
         let inner = OrderMap::from_iter(iter);
         Map { inner }
     }
 }
 
-impl<T> IntoIterator for Map<T> {
-    type Item = (Key, T);
-    type IntoIter = IntoIter<T>;
+impl<K, V> IntoIterator for Map<K, V>
+where
+    K: Eq + Hash,
+{
+    type Item = (K, V);
+    type IntoIter = IntoIter<K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter {
-            iter: self.inner.into_iter(),
-        }
+        let iter = self.inner.into_iter();
+        IntoIter { iter }
     }
 }
 
-impl<'a, T> IntoIterator for &'a Map<T> {
-    type Item = (&'a Key, &'a T);
-    type IntoIter = Iter<'a, T>;
+impl<'a, K, V> IntoIterator for &'a Map<K, V>
+where
+    K: Eq + Hash,
+{
+    type Item = (&'a K, &'a V);
+    type IntoIter = Iter<'a, K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
 
-impl<'a, T> IntoIterator for &'a mut Map<T> {
-    type Item = (&'a Key, &'a mut T);
-    type IntoIter = IterMut<'a, T>;
+impl<'a, K, V> IntoIterator for &'a mut Map<K, V>
+where
+    K: Eq + Hash,
+{
+    type Item = (&'a K, &'a mut V);
+    type IntoIter = IterMut<'a, K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
     }
 }
 
-impl<'de, T> Deserialize<'de> for Map<T>
+impl<'de, K, V> Deserialize<'de> for Map<K, V>
 where
-    T: Deserialize<'de>,
+    K: Deserialize<'de> + Eq + Hash,
+    V: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -148,7 +191,11 @@ where
     }
 }
 
-impl<T: Serialize> Serialize for Map<T> {
+impl<K, V> Serialize for Map<K, V>
+where
+    K: Eq + Hash + Serialize,
+    V: Serialize,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -157,12 +204,12 @@ impl<T: Serialize> Serialize for Map<T> {
     }
 }
 
-pub struct Drain<'a, T: 'a> {
-    iter: ordermap::Drain<'a, Key, T>,
+pub struct Drain<'a, K: 'a, V: 'a> {
+    iter: ordermap::Drain<'a, K, V>,
 }
 
-impl<'a, T> Iterator for Drain<'a, T> {
-    type Item = (Key, T);
+impl<'a, K, V> Iterator for Drain<'a, K, V> {
+    type Item = (K, V);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -173,12 +220,12 @@ impl<'a, T> Iterator for Drain<'a, T> {
     }
 }
 
-pub struct Iter<'a, T: 'a> {
-    iter: ordermap::Iter<'a, Key, T>,
+pub struct Iter<'a, K: 'a, V: 'a> {
+    iter: ordermap::Iter<'a, K, V>,
 }
 
-impl<'a, T> Iterator for Iter<'a, T> {
-    type Item = (&'a Key, &'a T);
+impl<'a, K, V> Iterator for Iter<'a, K, V> {
+    type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -201,24 +248,24 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
+impl<'a, K, V> DoubleEndedIterator for Iter<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> ExactSizeIterator for Iter<'a, T> {
+impl<'a, K, V> ExactSizeIterator for Iter<'a, K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct IterMut<'a, T: 'a> {
-    iter: ordermap::IterMut<'a, Key, T>,
+pub struct IterMut<'a, K: 'a, V: 'a> {
+    iter: ordermap::IterMut<'a, K, V>,
 }
 
-impl<'a, T> Iterator for IterMut<'a, T> {
-    type Item = (&'a Key, &'a mut T);
+impl<'a, K, V> Iterator for IterMut<'a, K, V> {
+    type Item = (&'a K, &'a mut V);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -241,24 +288,24 @@ impl<'a, T> Iterator for IterMut<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IterMut<'a, T> {
+impl<'a, K, V> DoubleEndedIterator for IterMut<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> ExactSizeIterator for IterMut<'a, T> {
+impl<'a, K, V> ExactSizeIterator for IterMut<'a, K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct IntoIter<T> {
-    iter: ordermap::IntoIter<Key, T>,
+pub struct IntoIter<K, V> {
+    iter: ordermap::IntoIter<K, V>,
 }
 
-impl<T> Iterator for IntoIter<T> {
-    type Item = (Key, T);
+impl<K, V> Iterator for IntoIter<K, V> {
+    type Item = (K, V);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -281,24 +328,24 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for IntoIter<T> {
+impl<K, V> DoubleEndedIterator for IntoIter<K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<T> ExactSizeIterator for IntoIter<T> {
+impl<K, V> ExactSizeIterator for IntoIter<K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct Keys<'a, T: 'a> {
-    iter: ordermap::Keys<'a, Key, T>,
+pub struct Keys<'a, K: 'a, V: 'a> {
+    iter: ordermap::Keys<'a, K, V>,
 }
 
-impl<'a, T> Iterator for Keys<'a, T> {
-    type Item = &'a Key;
+impl<'a, K, V> Iterator for Keys<'a, K, V> {
+    type Item = &'a K;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -321,24 +368,24 @@ impl<'a, T> Iterator for Keys<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Keys<'a, T> {
+impl<'a, K, V> DoubleEndedIterator for Keys<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> ExactSizeIterator for Keys<'a, T> {
+impl<'a, K, V> ExactSizeIterator for Keys<'a, K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct Values<'a, T: 'a> {
-    iter: ordermap::Values<'a, Key, T>,
+pub struct Values<'a, K: 'a, V: 'a> {
+    iter: ordermap::Values<'a, K, V>,
 }
 
-impl<'a, T> Iterator for Values<'a, T> {
-    type Item = &'a T;
+impl<'a, K, V> Iterator for Values<'a, K, V> {
+    type Item = &'a V;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -361,24 +408,24 @@ impl<'a, T> Iterator for Values<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for Values<'a, T> {
+impl<'a, K, V> DoubleEndedIterator for Values<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> ExactSizeIterator for Values<'a, T> {
+impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-pub struct ValuesMut<'a, T: 'a> {
-    iter: ordermap::ValuesMut<'a, Key, T>,
+pub struct ValuesMut<'a, K: 'a, V: 'a> {
+    iter: ordermap::ValuesMut<'a, K, V>,
 }
 
-impl<'a, T> Iterator for ValuesMut<'a, T> {
-    type Item = &'a mut T;
+impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
+    type Item = &'a mut V;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
@@ -401,13 +448,13 @@ impl<'a, T> Iterator for ValuesMut<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for ValuesMut<'a, T> {
+impl<'a, K, V> DoubleEndedIterator for ValuesMut<'a, K, V> {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back()
     }
 }
 
-impl<'a, T> ExactSizeIterator for ValuesMut<'a, T> {
+impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
     fn len(&self) -> usize {
         self.iter.len()
     }
