@@ -12,14 +12,20 @@ readme = "README.md"
 repository = "https://github.com/zacharygolba/json-api-rs"
 version = "0.1.0"
 
+[badges.appveyor]
+repository = "zacharygolba/json-api-rs"
+
+[badges.circle-ci]
+repository = "zacharygolba/json-api-rs"
+
 [dependencies]
-error-chain = "0.11.0"
+error-chain = "0.11"
 http = "0.1"
-percent-encoding = "1.0.0"
+percent-encoding = "1.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-serde_qs = "0.3.0"
+serde_qs = "0.3"
 
 [dependencies.ordermap]
 features = ["serde-1"]
