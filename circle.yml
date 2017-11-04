@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: rust
+    environment:
+      - NIGHTLY: nightly-2017-10-31
+    parallelism: 3
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-{{ checksum "circle.yml" }}
+      - run:
+          name: Test
+          command: scripts/test.sh
+      - save_cache:
+          key: cache-{{ checksum "circle.yml" }}
+          paths:
+            - /usr/local/cargo

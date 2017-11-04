@@ -120,7 +120,7 @@ impl Direction {
     /// ```
     /// # extern crate json_api;
     /// #
-    /// # use json_api::query::Direction;
+    /// # use json_api::query::sort::Direction;
     /// #
     /// # fn main() {
     /// let direction = Direction::Desc;
@@ -143,7 +143,7 @@ impl Direction {
     /// ```
     /// # extern crate json_api;
     /// #
-    /// # use json_api::query::Direction;
+    /// # use json_api::query::sort::Direction;
     /// #
     /// # fn main() {
     /// let direction = Direction::Asc;
