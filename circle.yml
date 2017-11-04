@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: rust
     environment:
-      - NIGHTLY: nightly-2017-11-4
+      - NIGHTLY: nightly-2017-11-04
     parallelism: 3
     steps:
       - checkout
