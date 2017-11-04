@@ -27,6 +27,9 @@ jobs:
       - run:
           name: Test
           command: scripts/test.sh
+      - run:
+          name: Codecov
+          command: bash <(curl -s https://codecov.io/bash)
       - save_cache:
           key: cache-{{ checksum "circle.yml" }}
           paths:
