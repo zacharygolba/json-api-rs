@@ -19,13 +19,13 @@ fi
 run cargo update
 run cargo build
 
-run_plugin $NIGHTLY fmt --all -- --write-mode diff
-
 if [ $DEFAULT_TOOLCHAIN == $NIGHTLY ]; then
   run_plugin $NIGHTLY clippy --all
+  run_plugin $NIGHTLY fmt --all -- --write-mode diff
   run cargo test --all --all-features
 else
   run_plugin $NIGHTLY clippy
+  run_plugin $NIGHTLY fmt -- --write-mode diff
   run cargo test
 fi
 
