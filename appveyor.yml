@@ -1,0 +1,16 @@
+build: false
+cache:
+  - C:\Users\appveyor\.cargo
+environment:
+  global:
+    NIGHTLY: nightly
+  matrix:
+    - DEFAULT_TOOLCHAIN: stable
+    - DEFAULT_TOOLCHAIN: beta
+    - DEFAULT_TOOLCHAIN: $NIGHTLY
+install:
+  - curl -sSf -o rustup-init.exe https://win.rustup.rs
+  - rustup-init.exe -y
+  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+test_script:
+  - sh scripts/test.sh
