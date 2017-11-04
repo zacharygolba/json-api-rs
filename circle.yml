@@ -5,7 +5,7 @@ jobs:
       - image: rust
     environment:
       - NIGHTLY: nightly
-    working_directory: ~/json-api-rs
+    parallelism: 3
     steps:
       - checkout
       - run:
