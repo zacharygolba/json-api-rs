@@ -1,7 +1,7 @@
-use std::iter::FromIterator;
-use std::ops::RangeFull;
 use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
+use std::iter::FromIterator;
+use std::ops::RangeFull;
 
 use ordermap::{self, Equivalent, OrderMap};
 use serde::de::{Deserialize, Deserializer};

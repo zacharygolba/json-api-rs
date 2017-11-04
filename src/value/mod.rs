@@ -5,9 +5,9 @@ pub mod set;
 use std::fmt::{self, Formatter};
 use std::iter::FromIterator;
 
-use serde_json::{self, Value as JsonValue};
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
+use serde_json::{self, Value as JsonValue};
 
 use error::Error;
 

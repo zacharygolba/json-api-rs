@@ -3,9 +3,9 @@ use std::str::Utf8Error;
 
 use http::status::InvalidStatusCode as InvalidStatusCodeError;
 use http::uri::InvalidUri as InvalidUriError;
+use serde::de;
 use serde_json::Error as JsonError;
 use serde_qs::Error as QueryError;
-use serde::de;
 
 error_chain!{
     foreign_links {
