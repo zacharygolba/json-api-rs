@@ -13,6 +13,18 @@ jobs:
           keys:
             - cache-{{ checksum "circle.yml" }}
       - run:
+          name: Install Dependencies
+          command: |
+            apt-get update -y
+            apt-get install -y \
+              binutils-dev \
+              cmake \
+              gcc \
+              libcurl4-openssl-dev \
+              libelf-dev \
+              libdw-dev \
+              libiberty-dev
+      - run:
           name: Test
           command: scripts/test.sh
       - save_cache:

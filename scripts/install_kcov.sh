@@ -6,15 +6,6 @@ PROJECT=$(pwd)
 
 cd /tmp
 
-apt-get update -y
-apt-get install -y \
-  binutils-dev \
-  cmake \
-  gcc \
-  libcurl4-openssl-dev \
-  libelf-dev libdw-dev \
-  libiberty-dev
-
 git clone https://github.com/SimonKagstrom/kcov.git
 cd kcov
 
