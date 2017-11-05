@@ -5,6 +5,7 @@ jobs:
       - image: rust
     environment:
       - NIGHTLY: nightly-2017-10-31
+      - RUSTFLAGS: -C link-dead-code
     parallelism: 3
     steps:
       - checkout
@@ -12,9 +13,26 @@ jobs:
           keys:
             - cache-{{ checksum "circle.yml" }}
       - run:
+          name: Install Dependencies
+          command: |
+            apt-get update -y
+            apt-get install -y \
+              binutils-dev \
+              cmake \
+              gcc \
+              libcurl4-openssl-dev \
+              libelf-dev \
+              libdw-dev \
+              libiberty-dev
+      - run:
           name: Test
           command: scripts/test.sh
+      - run:
+          name: Codecov
+          command: bash <(curl -s https://codecov.io/bash)
       - save_cache:
           key: cache-{{ checksum "circle.yml" }}
           paths:
+            - /usr/local/bin/kcov
+            - /usr/local/bin/kcov-system-daemon
             - /usr/local/cargo

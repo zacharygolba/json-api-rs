@@ -18,6 +18,9 @@ repository = "zacharygolba/json-api-rs"
 [badges.circle-ci]
 repository = "zacharygolba/json-api-rs"
 
+[badges.codecov]
+repository = "zacharygolba/json-api-rs"
+
 [dependencies]
 error-chain = "0.11"
 http = "0.1"

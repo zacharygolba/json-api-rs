@@ -1,6 +1,6 @@
 # json-api
 
-[![CircleCI branch](https://img.shields.io/circleci/project/github/zacharygolba/json-api-rs/master.svg?style=flat-square)](https://circleci.com/gh/zacharygolba/json-api-rs/tree/master) [![AppVeyor branch](https://img.shields.io/appveyor/ci/zacharygolba/json-api-rs/master.svg?logo=appveyor&style=flat-square)](https://ci.appveyor.com/project/zacharygolba/json-api-rs/branch/master) [![Crates.io](https://img.shields.io/crates/v/json-api.svg?style=flat-square)](https://crates.io/crates/json-api)
+[![CircleCI branch](https://img.shields.io/circleci/project/github/zacharygolba/json-api-rs/master.svg?style=flat-square)](https://circleci.com/gh/zacharygolba/json-api-rs/tree/master) [![AppVeyor branch](https://img.shields.io/appveyor/ci/zacharygolba/json-api-rs/master.svg?logo=appveyor&style=flat-square)](https://ci.appveyor.com/project/zacharygolba/json-api-rs/branch/master) [![Codecov branch](https://img.shields.io/codecov/c/github/zacharygolba/json-api-rs/master.svg?style=flat-square)](https://codecov.io/gh/zacharygolba/json-api-rs) [![Crates.io](https://img.shields.io/crates/v/json-api.svg?style=flat-square)](https://crates.io/crates/json-api)
 
 Idiomatic types for building a robust [JSON API](http://jsonapi.org/).
 
