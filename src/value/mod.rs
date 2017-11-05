@@ -88,6 +88,21 @@ impl From<String> for Value {
     }
 }
 
+impl<'a> From<&'a str> for Value {
+    fn from(s: &'a str) -> Self {
+        Value::String(s.to_owned())
+    }
+}
+
+impl<'a, T> From<&'a [T]> for Value
+where
+    T: Clone + Into<Value>,
+{
+    fn from(data: &'a [T]) -> Self {
+        data.iter().cloned().map(|i| i.into()).collect()
+    }
+}
+
 impl FromIterator<Value> for Value {
     fn from_iter<I>(iter: I) -> Self
     where
