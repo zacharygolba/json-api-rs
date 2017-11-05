@@ -267,4 +267,15 @@ mod tests {
         assert_eq!(sort.field, field);
         assert_eq!(sort.direction, Direction::Desc);
     }
+
+    #[test]
+    fn sort_reverse() {
+        let field = "created-at".parse().unwrap();
+        let chrono = Sort::new(field, Direction::Asc);
+        let latest = chrono.reverse();
+
+        assert_eq!(chrono.field, latest.field);
+        assert_eq!(chrono.direction, Direction::Asc);
+        assert_eq!(latest.direction, Direction::Desc);
+    }
 }
