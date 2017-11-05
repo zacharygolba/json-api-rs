@@ -1,29 +1,13 @@
 use json_api::value::StatusCode;
 
-use rocket::{Catcher, Error as RocketError, Request, Response, Rocket};
-use rocket::fairing::{Fairing, Info, Kind};
+use rocket::{Catcher, Error as RocketError, Request, Response};
 use rocket::http::Status;
 
-use respond;
-
-pub struct ErrorHandler;
-
-impl Fairing for ErrorHandler {
-    fn info(&self) -> Info {
-        Info {
-            kind: Kind::Attach,
-            name: "ErrorHandler",
-        }
-    }
-
-    fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
-        Ok(rocket.catch(handle()))
-    }
-}
+use response;
 
 macro_rules! catchers {
     ({ $($status:expr => $name:ident),* }) => {
-        $(fn $name(_: RocketError, _req: &Request) -> Result<Response<'static>, Status> {
+        $(pub fn $name(_: RocketError, _req: &Request) -> Result<Response<'static>, Status> {
             let code = $status.as_u16();
             let reason = $status
                 .canonical_reason()
@@ -42,14 +26,14 @@ macro_rules! catchers {
                 .error(e.finalize().map_err(|_| Status::InternalServerError)?)
                 .finalize()
                 .map_err(|_| Status::InternalServerError)
-                .and_then(respond::with_body)
+                .and_then(response::with_body)
                 .map(move |mut resp| {
                     resp.set_raw_status(code, "");
                     resp
                 })
         })*
 
-        fn handle() -> Vec<Catcher> {
+        pub fn catchers() -> Vec<Catcher> {
             vec![$(Catcher::new($status.as_u16(), $name)),*,]
         }
     }
