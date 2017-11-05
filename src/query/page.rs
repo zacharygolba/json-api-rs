@@ -37,7 +37,7 @@ impl<'de> Deserialize<'de> for Page {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::{Error, MapAccess, Visitor};
+        use serde::de::{MapAccess, Visitor};
 
         const FIELDS: &[&str] = &["number", "size"];
 
@@ -66,12 +66,6 @@ impl<'de> Deserialize<'de> for Page {
 
                 while let Some(key) = access.next_key()? {
                     match key {
-                        Field::Number if number.is_some() => {
-                            return Err(Error::duplicate_field("number"));
-                        }
-                        Field::Size if size.is_some() => {
-                            return Err(Error::duplicate_field("size"));
-                        }
                         Field::Number => {
                             number = access.next_value()?;
                         }
