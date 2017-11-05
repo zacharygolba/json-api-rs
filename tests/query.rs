@@ -2,17 +2,19 @@ extern crate json_api;
 #[macro_use]
 extern crate ordermap;
 
+use json_api::Error;
 use json_api::query::{self, Query};
 use json_api::query::sort::Direction;
 use ordermap::OrderMap;
 
-fn from_mappings() -> OrderMap<&'static str, Query> {
-    ordermap!{
+type Mapping = OrderMap<&'static str, Query>;
+
+fn from_mapping() -> Result<Mapping, Error> {
+    Ok(ordermap!{
         "" => Default::default(),
         "fields%5Barticles%5D=title" => Query::build()
             .fields("articles", vec!["title"])
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         concat!(
             "fields%5Barticles%5D=body%2Ctitle%2Cpublished-at&",
             "fields%5Bcomments%5D=body&",
@@ -21,53 +23,42 @@ fn from_mappings() -> OrderMap<&'static str, Query> {
             .fields("articles", vec!["body", "title", "published-at"])
             .fields("comments", vec!["body"])
             .fields("users", vec!["name"])
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "filter%5Busers.name%5D=Alfred+Pennyworth" => Query::build()
             .filter("users.name", "Alfred Pennyworth")
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "include=author" => Query::build()
             .include("author")
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "include=author%2Ccomments%2Ccomments.author" => Query::build()
             .include("author")
             .include("comments")
             .include("comments.author")
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "page%5Bnumber%5D=0" => Query::build()
             .page(1, None)
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "page%5Bnumber%5D=1" => Query::build()
             .page(1, None)
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "page%5Bsize%5D=10" => Query::build()
             .page(1, Some(10))
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "page%5Bnumber%5D=2&page%5Bsize%5D=15" => Query::build()
             .page(2, Some(15))
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "sort=-published-at" => Query::build()
             .sort("published-at", Direction::Desc)
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "sort=published-at%2C-title" => Query::build()
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         "sort=published-at%2C-title%2C-author.name" => Query::build()
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
             .sort("author.name", Direction::Desc)
-            .finalize()
-            .unwrap(),
+            .finalize()?,
         concat!(
             "fields%5Barticles%5D=body%2Ctitle%2Cpublished-at&",
             "fields%5Bcomments%5D=body&",
@@ -88,25 +79,26 @@ fn from_mappings() -> OrderMap<&'static str, Query> {
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
             .sort("author.name", Direction::Desc)
-            .finalize()
-            .unwrap(),
-    }
+            .finalize()?,
+    })
 }
 
-fn to_mappings() -> OrderMap<&'static str, Query> {
-    from_mappings()
+fn to_mapping() -> Result<Mapping, Error> {
+    let mapping = from_mapping()?
         .into_iter()
         .map(|(key, value)| match key {
             "page%5Bnumber%5D=0" => ("", value),
             "page%5Bnumber%5D=1" => ("", value),
             _ => (key, value),
         })
-        .collect()
+        .collect();
+
+    Ok(mapping)
 }
 
 #[test]
 fn query_from_slice() {
-    for (source, expected) in from_mappings() {
+    for (source, expected) in from_mapping().unwrap() {
         let actual = query::from_slice(source.as_bytes()).unwrap();
         assert_eq!(actual, expected);
     }
@@ -114,7 +106,7 @@ fn query_from_slice() {
 
 #[test]
 fn query_from_str() {
-    for (source, expected) in from_mappings() {
+    for (source, expected) in from_mapping().unwrap() {
         let actual = query::from_str(source).unwrap();
         assert_eq!(actual, expected);
     }
@@ -122,7 +114,7 @@ fn query_from_str() {
 
 #[test]
 fn query_to_string() {
-    for (expected, source) in to_mappings() {
+    for (expected, source) in to_mapping().unwrap() {
         let actual = query::to_string(&source).unwrap();
         assert_eq!(actual, expected);
     }
@@ -130,7 +122,7 @@ fn query_to_string() {
 
 #[test]
 fn query_to_vec() {
-    for (expected, source) in to_mappings() {
+    for (expected, source) in to_mapping().unwrap() {
         let actual = query::to_vec(&source).unwrap();
         assert_eq!(actual, expected.to_owned().into_bytes());
     }
