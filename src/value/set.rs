@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -11,7 +11,7 @@ use serde::ser::{Serialize, Serializer};
 
 use value::map::{self, Keys, Map};
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Set<T: Eq + Hash> {
     inner: Map<T, ()>,
 }
@@ -64,12 +64,6 @@ impl<T: Eq + Hash> Set<T> {
         Q: Equivalent<T> + Hash,
     {
         self.inner.remove(key).is_some()
-    }
-}
-
-impl<T: Debug + Eq + FromStr + Hash> Debug for Set<T> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.debug_set().entries(self.iter()).finish()
     }
 }
 
