@@ -4,7 +4,6 @@ use error::Error;
 use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Object {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub attributes: Map<Key, Value>,
