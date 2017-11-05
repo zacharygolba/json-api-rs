@@ -1,9 +1,9 @@
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Formatter};
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-#[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Page {
     pub number: u64,
     pub size: Option<u64>,
@@ -23,21 +23,12 @@ impl Page {
     }
 }
 
-impl Debug for Page {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Page")
-            .field("number", &self.number)
-            .field("size", &self.size)
-            .finish()
-    }
-}
-
 impl<'de> Deserialize<'de> for Page {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        use serde::de::{Error, MapAccess, Visitor};
+        use serde::de::{MapAccess, Visitor};
 
         const FIELDS: &[&str] = &["number", "size"];
 
@@ -66,12 +57,6 @@ impl<'de> Deserialize<'de> for Page {
 
                 while let Some(key) = access.next_key()? {
                     match key {
-                        Field::Number if number.is_some() => {
-                            return Err(Error::duplicate_field("number"));
-                        }
-                        Field::Size if size.is_some() => {
-                            return Err(Error::duplicate_field("size"));
-                        }
                         Field::Number => {
                             number = access.next_value()?;
                         }
@@ -107,5 +92,34 @@ impl Serialize for Page {
         }
 
         state.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Page;
+
+    #[test]
+    fn page_new() {
+        let mut page = Page::new(0, None);
+
+        // Page number should always be a positive unsigned integer.
+        // If 0 is passed to the constructor, it should be treated as 1.
+        assert_eq!(page.number, 1);
+        assert_eq!(page.size, None);
+
+        for number in 1..5 {
+            page = Page::new(number, None);
+
+            assert_eq!(page.number, number);
+            assert_eq!(page.size, None);
+        }
+
+        for size in (0..10).map(Some) {
+            page = Page::new(1, size);
+
+            assert_eq!(page.number, 1);
+            assert_eq!(page.size, size);
+        }
     }
 }

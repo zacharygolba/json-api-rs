@@ -1,8 +1,6 @@
 pub mod page;
 pub mod sort;
 
-use std::fmt::{self, Debug, Formatter};
-
 use percent_encoding::percent_decode;
 use serde_qs;
 
@@ -15,7 +13,7 @@ use value::key::{Key, Path};
 pub use self::page::Page;
 pub use self::sort::Sort;
 
-#[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Query {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub fields: Map<Key, Set<Key>>,
@@ -35,18 +33,6 @@ pub struct Query {
 impl Query {
     pub fn build() -> QueryBuilder {
         Default::default()
-    }
-}
-
-impl Debug for Query {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Query")
-            .field("fields", &self.fields)
-            .field("filter", &self.filter)
-            .field("include", &self.include)
-            .field("page", &self.page)
-            .field("sort", &self.sort)
-            .finish()
     }
 }
 
@@ -81,13 +67,14 @@ impl QueryBuilder {
         })
     }
 
-    pub fn fields<K, V>(&mut self, key: K, value: &[&str]) -> &mut Self
+    pub fn fields<I, K, V>(&mut self, key: K, iter: I) -> &mut Self
     where
+        I: IntoIterator<Item = V>,
         K: Into<String>,
         V: Into<String>,
     {
         let key = key.into();
-        let value = value.into_iter().map(|item| (*item).to_owned()).collect();
+        let value = iter.into_iter().map(|i| i.into()).collect();
 
         self.fields.push((key, value));
         self
@@ -133,8 +120,7 @@ pub fn from_slice(data: &[u8]) -> Result<Query, Error> {
 }
 
 pub fn from_str(data: &str) -> Result<Query, Error> {
-    let value = percent_decode(data.as_bytes()).decode_utf8()?;
-    Ok(serde_qs::from_str(value.as_ref())?)
+    from_slice(data.as_bytes())
 }
 
 pub fn to_string(query: &Query) -> Result<String, Error> {

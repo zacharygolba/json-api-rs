@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 
 use serde::de::{Deserialize, Deserializer, Error as DeError};
@@ -8,7 +8,7 @@ use builder;
 use error::Error;
 use value::{Key, Map, Value};
 
-#[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct JsonApi {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub meta: Map<Key, Value>,
@@ -16,15 +16,6 @@ pub struct JsonApi {
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
-}
-
-impl Debug for JsonApi {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("JsonApi")
-            .field("meta", &self.meta)
-            .field("version", &self.version)
-            .finish()
-    }
 }
 
 #[derive(Debug, Default)]

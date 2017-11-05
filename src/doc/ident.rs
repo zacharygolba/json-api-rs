@@ -1,10 +1,8 @@
-use std::fmt::{self, Debug, Formatter};
-
 use builder;
 use error::Error;
 use value::{Key, Map, Value};
 
-#[derive(Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Identifier {
     pub id: String,
     #[serde(rename = "type")]
@@ -19,16 +17,6 @@ pub struct Identifier {
 impl Identifier {
     pub fn build() -> IdentifierBuilder {
         Default::default()
-    }
-}
-
-impl Debug for Identifier {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Identifier")
-            .field("id", &self.id)
-            .field("kind", &self.kind)
-            .field("meta", &self.meta)
-            .finish()
     }
 }
 

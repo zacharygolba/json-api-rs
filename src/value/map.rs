@@ -1,4 +1,3 @@
-use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::ops::RangeFull;
@@ -7,7 +6,7 @@ use ordermap::{self, Equivalent, OrderMap};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Map<K, V>
 where
     K: Eq + Hash,
@@ -93,16 +92,6 @@ where
     pub fn values_mut(&mut self) -> ValuesMut<K, V> {
         let iter = self.inner.values_mut();
         ValuesMut { iter }
-    }
-}
-
-impl<K, V> Debug for Map<K, V>
-where
-    K: Debug + Eq + Hash,
-    V: Debug,
-{
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.debug_map().entries(self.iter()).finish()
     }
 }
 

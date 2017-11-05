@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::ops::Neg;
 use std::str::FromStr;
 
@@ -8,7 +8,7 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use query::Path;
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Sort {
     pub direction: Direction,
     pub field: Path,
@@ -55,15 +55,6 @@ impl Sort {
     }
 }
 
-impl Debug for Sort {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Sort")
-            .field("direction", &self.direction)
-            .field("field", &self.field)
-            .finish()
-    }
-}
-
 impl Display for Sort {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.direction == Direction::Desc {
@@ -79,17 +70,11 @@ impl FromStr for Sort {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         if value.starts_with('-') {
-            Ok(Sort {
-                direction: Direction::Desc,
-                field: (&value[1..]).parse()?,
-                _ext: (),
-            })
+            let field = (&value[1..]).parse()?;
+            Ok(Sort::new(field, Direction::Desc))
         } else {
-            Ok(Sort {
-                direction: Direction::Asc,
-                field: value.parse()?,
-                _ext: (),
-            })
+            let field = value.parse()?;
+            Ok(Sort::new(field, Direction::Asc))
         }
     }
 }
@@ -231,5 +216,65 @@ impl Neg for Direction {
             Direction::Asc => Direction::Desc,
             Direction::Desc => Direction::Asc,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Direction, Sort};
+    use value::key::Path;
+
+    #[test]
+    fn direction_is_asc() {
+        assert_eq!(Direction::Asc.is_asc(), true);
+        assert_eq!(Direction::Desc.is_asc(), false);
+    }
+
+    #[test]
+    fn direction_is_desc() {
+        assert_eq!(Direction::Desc.is_desc(), true);
+        assert_eq!(Direction::Asc.is_desc(), false);
+    }
+
+    #[test]
+    fn direction_reverse() {
+        let asc = Direction::Asc;
+        let desc = Direction::Desc;
+
+        assert_eq!(asc.reverse(), desc);
+        assert_eq!(desc.reverse(), asc);
+    }
+
+    #[test]
+    fn sort_from_str() {
+        let field = "created-at".parse::<Path>().unwrap();
+        let mut sort = "created-at".parse::<Sort>().unwrap();
+
+        assert_eq!(sort.field, field);
+        assert_eq!(sort.direction, Direction::Asc);
+
+        sort = "-created-at".parse().unwrap();
+
+        assert_eq!(sort.field, field);
+        assert_eq!(sort.direction, Direction::Desc);
+    }
+
+    #[test]
+    fn sort_reverse() {
+        let field = "created-at".parse().unwrap();
+        let chrono = Sort::new(field, Direction::Asc);
+        let latest = chrono.reverse();
+
+        assert_eq!(chrono.field, latest.field);
+        assert_eq!(chrono.direction, Direction::Asc);
+        assert_eq!(latest.direction, Direction::Desc);
+    }
+
+    #[test]
+    fn sort_to_string() {
+        let sort = Sort::new("created-at".parse().unwrap(), Direction::Asc);
+
+        assert_eq!(sort.to_string(), "created-at");
+        assert_eq!(sort.reverse().to_string(), "-created-at");
     }
 }

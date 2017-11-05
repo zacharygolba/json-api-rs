@@ -1,11 +1,9 @@
-use std::fmt::{self, Debug, Formatter};
-
 use builder;
 use doc::{Link, Relationship};
 use error::Error;
 use value::{Key, Map, Value};
 
-#[derive(Clone, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Object {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub attributes: Map<Key, Value>,
@@ -26,19 +24,6 @@ pub struct Object {
 impl Object {
     pub fn build() -> ObjectBuilder {
         Default::default()
-    }
-}
-
-impl Debug for Object {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Object")
-            .field("attributes", &self.attributes)
-            .field("id", &self.id)
-            .field("kind", &self.kind)
-            .field("links", &self.links)
-            .field("meta", &self.meta)
-            .field("relationships", &self.relationships)
-            .finish()
     }
 }
 
