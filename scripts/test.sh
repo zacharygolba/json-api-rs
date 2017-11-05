@@ -9,7 +9,7 @@ run rustup install stable beta $NIGHTLY
 run rustup default $DEFAULT_TOOLCHAIN
 
 if ! has_plugin clippy; then
-  run cargo +$NIGHTLY install clippy --vers v0.0.168
+  run cargo +$NIGHTLY install clippy
 fi
 
 if ! has_plugin fmt; then
