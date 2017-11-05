@@ -278,4 +278,12 @@ mod tests {
         assert_eq!(chrono.direction, Direction::Asc);
         assert_eq!(latest.direction, Direction::Desc);
     }
+
+    #[test]
+    fn sort_to_string() {
+        let sort = Sort::new("created-at".parse().unwrap(), Direction::Asc);
+
+        assert_eq!(sort.to_string(), "created-at");
+        assert_eq!(sort.reverse().to_string(), "-created-at");
+    }
 }
