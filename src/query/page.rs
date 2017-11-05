@@ -109,3 +109,32 @@ impl Serialize for Page {
         state.end()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Page;
+
+    #[test]
+    fn page_new() {
+        let mut page = Page::new(0, None);
+
+        // Page number should always be a positive unsigned integer.
+        // If 0 is passed to the constructor, it should be treated as 1.
+        assert_eq!(page.number, 1);
+        assert_eq!(page.size, None);
+
+        for number in 1..5 {
+            page = Page::new(number, None);
+
+            assert_eq!(page.number, number);
+            assert_eq!(page.size, None);
+        }
+
+        for size in (0..10).map(Some) {
+            page = Page::new(1, size);
+
+            assert_eq!(page.number, 1);
+            assert_eq!(page.size, size);
+        }
+    }
+}
