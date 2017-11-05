@@ -1,9 +1,11 @@
+use std::fmt::{self, Debug, Formatter};
+
 use builder;
 use doc::{Data, Identifier, Link};
 use error::Error;
 use value::{Key, Map, Value};
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Deserialize, PartialEq, Serialize)]
 pub struct Relationship {
     pub data: Data<Identifier>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
@@ -18,6 +20,16 @@ pub struct Relationship {
 impl Relationship {
     pub fn build() -> RelationshipBuilder {
         Default::default()
+    }
+}
+
+impl Debug for Relationship {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Relationship")
+            .field("data", &self.data)
+            .field("links", &self.links)
+            .field("meta", &self.meta)
+            .finish()
     }
 }
 

@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
 
@@ -10,7 +10,7 @@ use builder;
 use error::Error;
 use value::{Key, Map, Value};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Link {
     pub href: Uri,
     pub meta: Map<Key, Value>,
@@ -24,6 +24,15 @@ impl Link {
     }
 }
 
+impl Debug for Link {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Link")
+            .field("href", &self.href)
+            .field("meta", &self.meta)
+            .finish()
+    }
+}
+
 impl Deref for Link {
     type Target = Uri;
 
@@ -34,7 +43,7 @@ impl Deref for Link {
 
 impl Display for Link {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        self.href.fmt(f)
+        write!(f, "{}", self.href)
     }
 }
 

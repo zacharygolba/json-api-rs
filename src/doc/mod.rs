@@ -5,6 +5,7 @@ pub mod object;
 pub mod relationship;
 pub mod specification;
 
+use std::fmt::{self, Debug, Formatter};
 use std::iter::FromIterator;
 
 use serde::ser::Serialize;
@@ -22,7 +23,7 @@ pub use self::specification::JsonApi;
 #[doc(inline)]
 pub use self::specification::Version;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Document<T: PrimaryData> {
     pub data: Data<T>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -41,6 +42,18 @@ pub struct Document<T: PrimaryData> {
 impl<T: PrimaryData> Document<T> {
     pub fn build() -> DocumentBuilder<T> {
         Default::default()
+    }
+}
+
+impl<T: Debug + PrimaryData> Debug for Document<T> {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Document")
+            .field("data", &self.data)
+            .field("included", &self.included)
+            .field("jsonapi", &self.jsonapi)
+            .field("links", &self.links)
+            .field("meta", &self.meta)
+            .finish()
     }
 }
 
@@ -119,7 +132,7 @@ impl<T: PrimaryData> Default for DocumentBuilder<T> {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct ErrorDocument {
     pub errors: Vec<Error>,
     #[serde(default)]
@@ -136,6 +149,17 @@ pub struct ErrorDocument {
 impl ErrorDocument {
     pub fn build() -> ErrorDocumentBuilder {
         Default::default()
+    }
+}
+
+impl Debug for ErrorDocument {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Document")
+            .field("errors", &self.errors)
+            .field("jsonapi", &self.jsonapi)
+            .field("links", &self.links)
+            .field("meta", &self.meta)
+            .finish()
     }
 }
 
