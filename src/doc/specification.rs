@@ -9,7 +9,6 @@ use error::Error;
 use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct JsonApi {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub meta: Map<Key, Value>,

@@ -23,7 +23,6 @@ pub use self::specification::JsonApi;
 pub use self::specification::Version;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Document<T: PrimaryData> {
     pub data: Data<T>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -121,7 +120,6 @@ impl<T: PrimaryData> Default for DocumentBuilder<T> {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct ErrorDocument {
     pub errors: Vec<Error>,
     #[serde(default)]

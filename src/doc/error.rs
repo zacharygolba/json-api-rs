@@ -3,7 +3,6 @@ use doc::Link;
 use value::{Key, Map, StatusCode, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Error {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
@@ -115,7 +114,6 @@ impl ErrorBuilder {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Source {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pointer: Option<String>,
