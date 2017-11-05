@@ -1,8 +1,10 @@
+use std::fmt::{self, Debug, Formatter};
+
 use builder;
 use doc::Link;
 use value::{Key, Map, StatusCode, Value};
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
 pub struct Error {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
@@ -28,6 +30,21 @@ pub struct Error {
 impl Error {
     pub fn build() -> ErrorBuilder {
         Default::default()
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Error")
+            .field("code", &self.code)
+            .field("detail", &self.detail)
+            .field("id", &self.id)
+            .field("links", &self.links)
+            .field("meta", &self.meta)
+            .field("source", &self.source)
+            .field("status", &self.status)
+            .field("title", &self.title)
+            .finish()
     }
 }
 
@@ -113,14 +130,24 @@ impl ErrorBuilder {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Source {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pointer: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub parameter: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pointer: Option<String>,
     /// Private field for backwards compatibility.
+    #[serde(skip)]
     _ext: (),
+}
+
+impl Debug for Source {
+    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
+        fmtr.debug_struct("Source")
+            .field("parameter", &self.parameter)
+            .field("pointer", &self.pointer)
+            .finish()
+    }
 }
 
 mod serde_status {
