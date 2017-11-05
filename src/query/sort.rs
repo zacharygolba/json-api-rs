@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::ops::Neg;
 use std::str::FromStr;
 
@@ -8,7 +8,7 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use query::Path;
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Sort {
     pub direction: Direction,
     pub field: Path,
@@ -52,15 +52,6 @@ impl Sort {
     /// ```
     pub fn reverse(&self) -> Self {
         -self.clone()
-    }
-}
-
-impl Debug for Sort {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Sort")
-            .field("direction", &self.direction)
-            .field("field", &self.field)
-            .finish()
     }
 }
 

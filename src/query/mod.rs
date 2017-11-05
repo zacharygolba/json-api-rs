@@ -1,8 +1,6 @@
 pub mod page;
 pub mod sort;
 
-use std::fmt::{self, Debug, Formatter};
-
 use percent_encoding::percent_decode;
 use serde_qs;
 
@@ -15,7 +13,7 @@ use value::key::{Key, Path};
 pub use self::page::Page;
 pub use self::sort::Sort;
 
-#[derive(Clone, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Query {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub fields: Map<Key, Set<Key>>,
@@ -35,18 +33,6 @@ pub struct Query {
 impl Query {
     pub fn build() -> QueryBuilder {
         Default::default()
-    }
-}
-
-impl Debug for Query {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Query")
-            .field("fields", &self.fields)
-            .field("filter", &self.filter)
-            .field("include", &self.include)
-            .field("page", &self.page)
-            .field("sort", &self.sort)
-            .finish()
     }
 }
 

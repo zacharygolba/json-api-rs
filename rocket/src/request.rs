@@ -1,5 +1,3 @@
-use std::fmt::{self, Debug, Formatter};
-
 use json_api::Error;
 use json_api::query::{self, Page, Query as JsonApiQuery, Sort};
 use json_api::value::{map, set, Set, Value};
@@ -8,7 +6,7 @@ use rocket::Outcome;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Query {
     inner: JsonApiQuery,
 }
@@ -39,12 +37,6 @@ impl Query {
 
     pub fn sort(&self) -> set::Iter<Sort> {
         self.inner.sort.iter()
-    }
-}
-
-impl Debug for Query {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        Debug::fmt(&self.inner, fmtr)
     }
 }
 

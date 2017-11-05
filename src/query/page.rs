@@ -1,9 +1,9 @@
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Formatter};
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-#[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Page {
     pub number: u64,
     pub size: Option<u64>,
@@ -20,15 +20,6 @@ impl Page {
             size,
             _ext: (),
         }
-    }
-}
-
-impl Debug for Page {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_struct("Page")
-            .field("number", &self.number)
-            .field("size", &self.size)
-            .finish()
     }
 }
 

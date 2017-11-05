@@ -1,7 +1,7 @@
 mod path;
 
 use std::borrow::Borrow;
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
 
@@ -17,7 +17,7 @@ pub use self::path::Path;
 ///
 /// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
 /// [Member Names]: http://jsonapi.org/format/#document-member-names
-#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Key(String);
 
 impl AsRef<[u8]> for Key {
@@ -35,12 +35,6 @@ impl AsRef<str> for Key {
 impl Borrow<str> for Key {
     fn borrow(&self) -> &str {
         &**self
-    }
-}
-
-impl Debug for Key {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.debug_tuple("Key").field(&self.0.as_str()).finish()
     }
 }
 
