@@ -6,12 +6,12 @@ categories = [
     "web-programming::http-server",
 ]
 description = "Rocket support for the json-api crate"
-documentation = "https://docs.rs/json-api-rocket/0.1"
+documentation = "https://docs.rs/json-api-rocket/0.2"
 license = "MIT/Apache-2.0"
 name = "json-api-rocket"
 readme = "README.md"
 repository = "https://github.com/zacharygolba/json-api-rs"
-version = "0.1.0"
+version = "0.2.0"
 
 [badges.appveyor]
 repository = "zacharygolba/json-api-rs"
