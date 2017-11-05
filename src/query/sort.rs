@@ -1,4 +1,5 @@
 use std::fmt::{self, Debug, Display, Formatter};
+use std::ops::Neg;
 use std::str::FromStr;
 
 use serde::de::{Deserialize, Deserializer};
@@ -22,6 +23,35 @@ impl Sort {
             field,
             _ext: (),
         }
+    }
+
+    /// Returns a cloned inverse of `self`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::query::sort::{Direction, Sort};
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let chrono = Sort::new("created-at".parse()?, Direction::Asc);
+    /// let latest = chrono.reverse();
+    ///
+    /// assert_eq!(chrono.field, latest.field);
+    /// assert_eq!(chrono.direction, Direction::Asc);
+    /// assert_eq!(latest.direction, Direction::Desc);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn reverse(&self) -> Self {
+        -self.clone()
     }
 }
 
@@ -60,6 +90,18 @@ impl FromStr for Sort {
                 field: value.parse()?,
                 _ext: (),
             })
+        }
+    }
+}
+
+impl Neg for Sort {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Sort {
+            direction: -self.direction,
+            field: self.field,
+            _ext: (),
         }
     }
 }
@@ -157,5 +199,37 @@ impl Direction {
     /// [`Desc`]: #variant.Desc
     pub fn is_desc(&self) -> bool {
         *self == Direction::Desc
+    }
+
+    /// Returns a cloned inverse of `self`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::query::sort::Direction;
+    /// #
+    /// # fn main() {
+    /// let asc = Direction::Asc;
+    /// let desc = Direction::Desc;
+    ///
+    /// assert_eq!(asc.reverse(), desc);
+    /// assert_eq!(desc.reverse(), asc);
+    /// # }
+    /// ```
+    pub fn reverse(&self) -> Self {
+        -*self
+    }
+}
+
+impl Neg for Direction {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        match self {
+            Direction::Asc => Direction::Desc,
+            Direction::Desc => Direction::Asc,
+        }
     }
 }
