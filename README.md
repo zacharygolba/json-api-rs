@@ -131,7 +131,9 @@ extern crate rocket;
 
 mod models;
 
-use json_api_rocket::{Collection, ErrorHandler, Member};
+use json_api_rocket::JsonApiFairing;
+use json_api_rocket::response::{Collection, Member};
+
 use models::Article;
 
 #[get("/")]
@@ -141,13 +143,12 @@ fn collection() -> Collection<Article> {
 
 #[get("/<id>")]
 fn member(id: u64) -> Member<Article> {
-    let article = Article::new(id);
-    Member(article)
+    Member(Article::new(id))
 }
 
 fn main() {
     rocket::ignite()
-        .attach(ErrorHandler) // Adds JSON API error catchers
+        .attach(JsonApiFairing)
         .mount("/articles", routes![collection, member])
         .launch();
 }
