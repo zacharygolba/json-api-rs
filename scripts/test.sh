@@ -29,7 +29,7 @@ else
   run cargo test
 fi
 
-if $CIRCLECI; then
+if [ "$CIRCLECI" == "true" ]; then
   if ! [ -f /usr/local/bin/kcov ]; then
     run scripts/install_kcov.sh
   fi
