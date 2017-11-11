@@ -1,3 +1,5 @@
+//! A hash set implemented as a `Map` where the value is `()`.
+
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
@@ -11,6 +13,7 @@ use serde::ser::{Serialize, Serializer};
 
 use value::map::{self, Keys, Map};
 
+/// A hash set implemented as a `Map` where the value is `()`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Set<T: Eq + Hash> {
     inner: Map<T, ()>,
@@ -193,6 +196,7 @@ impl<T: Display + Eq + Hash> Serialize for Set<T> {
     }
 }
 
+/// A draining iterator over the items of a `Set`.
 pub struct Drain<'a, T: 'a> {
     iter: map::Drain<'a, T, ()>,
 }
@@ -209,6 +213,7 @@ impl<'a, T> Iterator for Drain<'a, T> {
     }
 }
 
+/// An iterator over the items of a `Set`.
 pub struct Iter<'a, T: 'a> {
     iter: Keys<'a, T, ()>,
 }
@@ -249,6 +254,7 @@ impl<'a, T> ExactSizeIterator for Iter<'a, T> {
     }
 }
 
+/// An owning iterator over the items of a `Set`.
 pub struct IntoIter<T> {
     iter: map::IntoIter<T, ()>,
 }

@@ -5,6 +5,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
 
+use inflector::Inflector;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
@@ -12,11 +13,29 @@ use error::Error;
 
 pub use self::path::Path;
 
-/// An immutable wrapper around [`String`] that enforces compliance
-/// with JSON API [Member Names].
+/// A wrapper around `String` that enforces compliance with JSON API member names.
 ///
-/// [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
-/// [Member Names]: http://jsonapi.org/format/#document-member-names
+/// # Example
+///
+/// ```
+/// # extern crate json_api;
+/// #
+/// # use std::str::FromStr;
+/// #
+/// # use json_api::Error;
+/// # use json_api::value::Key;
+/// #
+/// # fn example() -> Result<(), Error> {
+/// let key = Key::from_str("someFieldName")?;
+/// assert_eq!(key, "some-field-name");
+/// #
+/// # Ok(())
+/// # }
+/// #
+/// # fn main() {
+/// # example().unwrap()
+/// # }
+/// ```
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Key(String);
 
@@ -114,7 +133,7 @@ impl FromStr for Key {
             }
         }
 
-        Ok(Key(value.to_owned()))
+        Ok(Key(value.to_kebab_case()))
     }
 }
 
@@ -127,6 +146,12 @@ impl PartialEq<String> for Key {
 impl PartialEq<str> for Key {
     fn eq(&self, rhs: &str) -> bool {
         &**self == rhs
+    }
+}
+
+impl<'a> PartialEq<&'a str> for Key {
+    fn eq(&self, rhs: &&str) -> bool {
+        &**self == *rhs
     }
 }
 

@@ -7,8 +7,7 @@ use serde_qs;
 use self::sort::Direction;
 use builder;
 use error::Error;
-use value::{Map, Set, Value};
-use value::key::{Key, Path};
+use value::{Key, Map, Path, Set, Value};
 
 pub use self::page::Page;
 pub use self::sort::Sort;

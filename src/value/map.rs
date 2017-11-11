@@ -1,3 +1,8 @@
+//! A hash map implementation with consistent ordering.
+//!
+//! The types in this module are commonly used as the underlying data structure of
+//! arbitrary objects found in JSON API data.
+
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::ops::RangeFull;
@@ -6,6 +11,7 @@ use ordermap::{self, Equivalent, OrderMap};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
+/// A hash map implementation with consistent ordering.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Map<K, V>
 where
@@ -193,6 +199,7 @@ where
     }
 }
 
+/// A draining iterator over the entries of a `Map`.
 pub struct Drain<'a, K: 'a, V: 'a> {
     iter: ordermap::Drain<'a, K, V>,
 }
@@ -209,6 +216,7 @@ impl<'a, K, V> Iterator for Drain<'a, K, V> {
     }
 }
 
+/// An iterator over the entries of a `Map`.
 pub struct Iter<'a, K: 'a, V: 'a> {
     iter: ordermap::Iter<'a, K, V>,
 }
@@ -249,6 +257,7 @@ impl<'a, K, V> ExactSizeIterator for Iter<'a, K, V> {
     }
 }
 
+/// An mutable iterator over the entries of a `Map`.
 pub struct IterMut<'a, K: 'a, V: 'a> {
     iter: ordermap::IterMut<'a, K, V>,
 }
@@ -289,6 +298,7 @@ impl<'a, K, V> ExactSizeIterator for IterMut<'a, K, V> {
     }
 }
 
+/// An owning iterator over the entries of a `Map`.
 pub struct IntoIter<K, V> {
     iter: ordermap::IntoIter<K, V>,
 }
@@ -329,6 +339,7 @@ impl<K, V> ExactSizeIterator for IntoIter<K, V> {
     }
 }
 
+/// An iterator over the keys of a `Map`.
 pub struct Keys<'a, K: 'a, V: 'a> {
     iter: ordermap::Keys<'a, K, V>,
 }
@@ -369,6 +380,7 @@ impl<'a, K, V> ExactSizeIterator for Keys<'a, K, V> {
     }
 }
 
+/// An iterator over the values of a `Map`.
 pub struct Values<'a, K: 'a, V: 'a> {
     iter: ordermap::Values<'a, K, V>,
 }
@@ -409,6 +421,7 @@ impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
     }
 }
 
+/// A mutable iterator over the values of a `Map`.
 pub struct ValuesMut<'a, K: 'a, V: 'a> {
     iter: ordermap::ValuesMut<'a, K, V>,
 }

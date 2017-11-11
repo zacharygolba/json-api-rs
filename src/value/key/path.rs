@@ -10,31 +10,96 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use value::Key;
 
-/// A sequence of `.` seperated JSON API [Member Names].
+/// A sequence of `.` seperated JSON API [member names].
 ///
-/// The [Path] struct is commonly used in query params that accept a [relationship path].
+/// Commonly used in query params that accept a [relationship path].
 ///
-/// [Member Names]: http://jsonapi.org/format/#document-member-names
-/// [Path]: ./struct.Path.html
+/// [member names]: http://jsonapi.org/format/#document-member-names
 /// [relationship path]: http://jsonapi.org/format/#fetching-includes
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Path(Vec<Key>);
 
 impl Path {
+    /// Constructs a new, empty `Path`.
     pub fn new() -> Self {
         Default::default()
     }
 
+    /// Constructs a new, empty `Path` with the specified capacity.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let mut path = Path::with_capacity(2);
+    ///
+    /// path.push("a".parse()?);
+    /// path.push("b".parse()?);
+    ///
+    /// // The next push will require reallocation...
+    /// path.push("c".parse()?);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
     pub fn with_capacity(capacity: usize) -> Self {
         Path(Vec::with_capacity(capacity))
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
+    /// Returns the number of keys the path can hold without reallocating.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn main() {
+    /// let path = Path::with_capacity(2);
+    /// assert_eq!(path.capacity(), 2);
+    /// # }
+    /// ```
+    pub fn capacity(&self) -> usize {
+        self.0.capacity()
     }
 
-    pub fn len(&self) -> usize {
-        let Path(ref keys) = *self;
+    /// Returns the number of chars in a `Path`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use std::str::FromStr;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let path = Path::from_str("authors.name")?;
+    ///
+    /// assert_eq!(path.len(), 2);
+    /// assert_eq!(path.char_count(), 12);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn char_count(&self) -> usize {
+        let keys = &self.0;
         let count = keys.len();
 
         if count > 0 {
@@ -46,13 +111,93 @@ impl Path {
         }
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let capacity = self.len();
-        let bytes = Vec::with_capacity(capacity);
+    /// Removes and returns a `Key` to the back of a `Path`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use std::str::FromStr;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let mut path = Path::from_str("authors.name")?;
+    ///
+    /// assert_eq!(path.pop(), Some("name".parse()?));
+    /// assert_eq!(path.pop(), Some("authors".parse()?));
+    /// assert_eq!(path.pop(), None);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn pop(&mut self) -> Option<Key> {
+        self.0.pop()
+    }
 
-        if capacity == 0 {
-            return bytes;
-        }
+    /// Appends a `Key` to the back of a `Path`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let mut path = Path::new();
+    ///
+    /// path.push("authors".parse()?);
+    /// path.push("name".parse()?);
+    ///
+    /// assert_eq!(path, "authors.name");
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn push(&mut self, key: Key) {
+        self.0.push(key)
+    }
+
+    /// Converts the `Path` into an owned byte vector.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use std::str::FromStr;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let path = Path::from_str("a.b.c")?;
+    /// assert_eq!(path.to_bytes(), vec![97, 46, 98, 46, 99]);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let bytes = match self.char_count() {
+            0 => return Default::default(),
+            len => Vec::with_capacity(len),
+        };
 
         self.iter().fold(bytes, |mut bytes, key| {
             if !bytes.is_empty() {
@@ -64,6 +209,29 @@ impl Path {
         })
     }
 
+    /// Converts the `Path` into an owned string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use std::str::FromStr;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let path = Path::from_str("a.b.c")?;
+    /// assert_eq!(path.to_string(), "a.b.c".to_owned());
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
     pub fn to_string(&self) -> String {
         let bytes = self.to_bytes();
         unsafe { String::from_utf8_unchecked(bytes) }
@@ -131,12 +299,6 @@ impl<'a> IntoIterator for &'a Path {
     }
 }
 
-impl PartialEq<String> for Path {
-    fn eq(&self, rhs: &String) -> bool {
-        self == &*rhs
-    }
-}
-
 impl PartialEq<str> for Path {
     fn eq(&self, rhs: &str) -> bool {
         let mut parts = rhs.split('.');
@@ -148,6 +310,18 @@ impl PartialEq<str> for Path {
         }
 
         parts.next().is_none()
+    }
+}
+
+impl<'a> PartialEq<&'a str> for Path {
+    fn eq(&self, rhs: &&str) -> bool {
+        self == *rhs
+    }
+}
+
+impl PartialEq<String> for Path {
+    fn eq(&self, rhs: &String) -> bool {
+        self == &*rhs
     }
 }
 
