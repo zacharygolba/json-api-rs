@@ -2,8 +2,10 @@ pub mod key;
 pub mod map;
 pub mod set;
 
+use std::cmp::PartialEq;
 use std::fmt::{self, Formatter};
 use std::iter::FromIterator;
+use std::str::FromStr;
 
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
@@ -28,63 +30,234 @@ pub enum Value {
     String(String),
 }
 
+impl Value {
+    pub fn as_array(&self) -> Option<&Vec<Value>> {
+        match *self {
+            Value::Array(ref inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_array_mut(&mut self) -> Option<&mut Vec<Value>> {
+        match *self {
+            Value::Array(ref mut inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        match *self {
+            Value::Bool(inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_null(&self) -> Option<()> {
+        match *self {
+            Value::Null => Some(()),
+            _ => None,
+        }
+    }
+
+    pub fn as_object(&self) -> Option<&Map<Key, Value>> {
+        match *self {
+            Value::Object(ref inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_object_mut(&mut self) -> Option<&mut Map<Key, Value>> {
+        match *self {
+            Value::Object(ref mut inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_str(&self) -> Option<&str> {
+        match *self {
+            Value::String(ref inner) => Some(inner),
+            _ => None,
+        }
+    }
+
+    pub fn as_f64(&self) -> Option<f64> {
+        match *self {
+            Value::Number(ref n) => n.as_f64(),
+            _ => None,
+        }
+    }
+
+    pub fn as_i64(&self) -> Option<i64> {
+        match *self {
+            Value::Number(ref n) => n.as_i64(),
+            _ => None,
+        }
+    }
+
+    pub fn as_u64(&self) -> Option<u64> {
+        match *self {
+            Value::Number(ref n) => n.as_u64(),
+            _ => None,
+        }
+    }
+
+    pub fn is_array(&self) -> bool {
+        match *self {
+            Value::Array(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_bool(&self) -> bool {
+        match *self {
+            Value::Bool(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_null(&self) -> bool {
+        match *self {
+            Value::Null => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        match *self {
+            Value::Number(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_object(&self) -> bool {
+        match *self {
+            Value::Object(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_string(&self) -> bool {
+        match *self {
+            Value::String(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_f64(&self) -> bool {
+        match *self {
+            Value::Number(ref n) => n.is_f64(),
+            _ => false,
+        }
+    }
+
+    pub fn is_i64(&self) -> bool {
+        match *self {
+            Value::Number(ref n) => n.is_i64(),
+            _ => false,
+        }
+    }
+
+    pub fn is_u64(&self) -> bool {
+        match *self {
+            Value::Number(ref n) => n.is_u64(),
+            _ => false,
+        }
+    }
+}
+
 impl From<bool> for Value {
     fn from(inner: bool) -> Self {
         Value::Bool(inner)
     }
 }
 
+impl From<f32> for Value {
+    fn from(n: f32) -> Self {
+        From::from(n as f64)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(n: f64) -> Self {
+        Number::from_f64(n).map_or(Value::Null, Value::Number)
+    }
+}
+
 impl From<i8> for Value {
     fn from(n: i8) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as i64)
     }
 }
 
 impl From<i16> for Value {
     fn from(n: i16) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as i64)
     }
 }
 
 impl From<i32> for Value {
     fn from(n: i32) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as i64)
     }
 }
 
 impl From<i64> for Value {
     fn from(n: i64) -> Self {
-        Value::Number(Number::from(n))
+        Value::Number(n.into())
     }
 }
 
 impl From<u8> for Value {
     fn from(n: u8) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as u64)
     }
 }
 
 impl From<u16> for Value {
     fn from(n: u16) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as u64)
     }
 }
 
 impl From<u32> for Value {
     fn from(n: u32) -> Self {
-        Value::Number(Number::from(n))
+        From::from(n as u64)
     }
 }
 
 impl From<u64> for Value {
     fn from(n: u64) -> Self {
-        Value::Number(Number::from(n))
+        Value::Number(n.into())
     }
 }
 
 impl From<String> for Value {
     fn from(s: String) -> Self {
         Value::String(s)
+    }
+}
+
+impl From<Map<Key, Value>> for Value {
+    fn from(data: Map<Key, Value>) -> Self {
+        Value::Object(data)
+    }
+}
+
+impl<T> From<Option<T>> for Value
+where
+    T: Into<Value>,
+{
+    fn from(data: Option<T>) -> Self {
+        data.map_or(Value::Null, T::into)
+    }
+}
+
+impl<T> From<Vec<T>> for Value
+where
+    T: Into<Value>,
+{
+    fn from(data: Vec<T>) -> Self {
+        Value::Array(data.into_iter().map(|i| i.into()).collect())
     }
 }
 
@@ -99,16 +272,19 @@ where
     T: Clone + Into<Value>,
 {
     fn from(data: &'a [T]) -> Self {
-        data.iter().cloned().map(|i| i.into()).collect()
+        Value::Array(data.iter().cloned().map(|i| i.into()).collect())
     }
 }
 
-impl FromIterator<Value> for Value {
+impl<T> FromIterator<T> for Value
+where
+    T: Into<Value>,
+{
     fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = Value>,
+        I: IntoIterator<Item = T>,
     {
-        Value::Array(Vec::from_iter(iter))
+        Value::Array(iter.into_iter().map(|i| i.into()).collect())
     }
 }
 
@@ -118,6 +294,98 @@ impl FromIterator<(Key, Value)> for Value {
         I: IntoIterator<Item = (Key, Value)>,
     {
         Value::Object(Map::from_iter(iter))
+    }
+}
+
+impl FromStr for Value {
+    type Err = Error;
+
+    fn from_str(src: &str) -> Result<Self, Self::Err> {
+        from_json(src.parse()?)
+    }
+}
+
+impl PartialEq<bool> for Value {
+    fn eq(&self, rhs: &bool) -> bool {
+        self.as_bool().map_or(false, |lhs| lhs == *rhs)
+    }
+}
+
+impl PartialEq<f32> for Value {
+    fn eq(&self, rhs: &f32) -> bool {
+        self.as_f64().map_or(false, |lhs| lhs == (*rhs as f64))
+    }
+}
+
+impl PartialEq<f64> for Value {
+    fn eq(&self, rhs: &f64) -> bool {
+        self.as_f64().map_or(false, |lhs| lhs == (*rhs as f64))
+    }
+}
+
+impl PartialEq<i8> for Value {
+    fn eq(&self, rhs: &i8) -> bool {
+        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+    }
+}
+
+impl PartialEq<i16> for Value {
+    fn eq(&self, rhs: &i16) -> bool {
+        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+    }
+}
+
+impl PartialEq<i32> for Value {
+    fn eq(&self, rhs: &i32) -> bool {
+        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+    }
+}
+
+impl PartialEq<i64> for Value {
+    fn eq(&self, rhs: &i64) -> bool {
+        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+    }
+}
+
+impl PartialEq<isize> for Value {
+    fn eq(&self, rhs: &isize) -> bool {
+        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+    }
+}
+
+impl PartialEq<u8> for Value {
+    fn eq(&self, rhs: &u8) -> bool {
+        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+    }
+}
+
+impl PartialEq<u16> for Value {
+    fn eq(&self, rhs: &u16) -> bool {
+        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+    }
+}
+
+impl PartialEq<u32> for Value {
+    fn eq(&self, rhs: &u32) -> bool {
+        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+    }
+}
+
+impl PartialEq<u64> for Value {
+    fn eq(&self, rhs: &u64) -> bool {
+        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+    }
+}
+
+impl PartialEq<usize> for Value {
+    fn eq(&self, rhs: &usize) -> bool {
+        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+    }
+}
+
+impl PartialEq<str> for Value {
+    fn eq(&self, rhs: &str) -> bool {
+        self.as_str().map_or(false, |lhs| lhs == rhs)
     }
 }
 
