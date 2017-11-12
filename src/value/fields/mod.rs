@@ -16,6 +16,9 @@ pub use self::path::Path;
 
 /// Represents a single member name.
 ///
+/// When an instance of `Key` is parsed, the underlying value's casing
+/// convention is converted to kebab-case.
+///
 /// # Example
 ///
 /// ```
