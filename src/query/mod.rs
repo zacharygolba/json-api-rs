@@ -56,11 +56,12 @@ impl QueryBuilder {
 
                 Ok((key, fields))
             })?,
-            filter: builder::iter(&mut self.filter, |(key, value)| Ok((key.parse()?, value)))?,
+            filter: builder::iter(&mut self.filter, builder::parse_key)?,
             include: builder::iter(&mut self.include, |key| key.parse())?,
             page: builder::optional(&mut self.page),
-            sort: builder::iter(&mut self.sort, |(field, direction)| {
-                Ok(Sort::new(field.parse()?, direction))
+            sort: builder::iter(&mut self.sort, |entry| {
+                let (field, direction) = builder::parse_key(entry)?;
+                Ok(Sort::new(field, direction))
             })?,
             _ext: (),
         })

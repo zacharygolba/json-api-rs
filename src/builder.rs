@@ -1,8 +1,7 @@
+use std::{mem, str};
 use std::iter::FromIterator;
-use std::mem;
 
 use error::Error;
-use value::Key;
 
 #[inline]
 pub fn default<T: Default>(value: &mut Option<T>) -> T {
@@ -29,7 +28,13 @@ where
 }
 
 #[inline]
-pub fn parse_key<V>(entry: (String, V)) -> Result<(Key, V), Error> {
+pub fn parse_key<K, Q, V>(entry: (Q, V)) -> Result<(K, V), Error>
+where
+    K: str::FromStr<Err = Error>,
+    Q: AsRef<str>,
+{
     let (key, value) = entry;
-    Ok((key.parse()?, value))
+    let key = K::from_str(key.as_ref())?;
+
+    Ok((key, value))
 }
