@@ -22,7 +22,6 @@ repository = "zacharygolba/json-api-rs"
 repository = "zacharygolba/json-api-rs"
 
 [dependencies]
-Inflector = "0.11.0"
 error-chain = "0.11"
 http = "0.1"
 percent-encoding = "1.0"

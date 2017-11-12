@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate error_chain;
-extern crate inflector;
 extern crate ordermap;
 extern crate percent_encoding;
 extern crate serde;

@@ -277,7 +277,7 @@ impl FromStr for Path {
     type Err = Error;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        value.split('.').map(|item| item.parse()).collect()
+        value.split('.').map(Key::from_str).collect()
     }
 }
 

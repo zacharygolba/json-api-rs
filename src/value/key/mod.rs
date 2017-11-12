@@ -5,7 +5,6 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::str::FromStr;
 
-use inflector::Inflector;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
@@ -81,59 +80,70 @@ impl From<Key> for String {
 impl FromStr for Key {
     type Err = Error;
 
-    fn from_str(value: &str) -> Result<Key, Self::Err> {
-        if value.is_empty() {
-            bail!("Member names cannot be blank");
-        }
+    fn from_str(source: &str) -> Result<Key, Self::Err> {
+        // We should reserve a bit more than what we need so in
+        // the event that we end up converting camelCase to
+        // kebab-case, we don't have to reallocate.
+        let mut dest = String::with_capacity(source.len() + 10);
+        let mut chars = source.chars().peekable();
 
-        let last = value.len() - 1;
-        for (idx, chr) in value.chars().enumerate() {
-            match chr {
-                '\u{002b}' |
-                '\u{002c}' |
-                '\u{002e}' |
-                '\u{005b}' |
-                '\u{005d}' |
-                '\u{0021}' |
-                '\u{0022}' |
-                '\u{0023}' |
-                '\u{0024}' |
-                '\u{0025}' |
-                '\u{0026}' |
-                '\u{0027}' |
-                '\u{0028}' |
-                '\u{0029}' |
-                '\u{002a}' |
-                '\u{002f}' |
-                '\u{003a}' |
-                '\u{003b}' |
-                '\u{003c}' |
-                '\u{003d}' |
-                '\u{003e}' |
-                '\u{003f}' |
-                '\u{0040}' |
-                '\u{005c}' |
-                '\u{005e}' |
-                '\u{0060}' |
-                '\u{007b}' |
-                '\u{007c}' |
-                '\u{007d}' |
-                '\u{007e}' |
-                '\u{007f}' |
-                '\u{0000}'...'\u{001f}' => {
-                    bail!("Member names cannot contain {}", chr);
-                }
-                '\u{002d}' | '\u{005f}' | '\u{0020}' if idx == 0 => {
-                    bail!("Member names cannot start with {}", chr);
-                }
-                '\u{002d}' | '\u{005f}' | '\u{0020}' if idx == last => {
-                    bail!("Member names cannot end with {}", chr);
-                }
-                _ => (),
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        match chars.next() {
+            Some(value @ '\u{002d}') |
+            Some(value @ '\u{005f}') |
+            Some(value @ '\u{0020}') => {
+                bail!("cannot start with '{}'", value);
+            }
+            None => {
+                bail!("cannot be blank");
+            }
+            Some(value @ 'A'...'Z') => {
+                dest.push(as_lowercase(value));
+            }
+            Some(value) => {
+                dest.push(value);
             }
         }
 
-        Ok(Key(value.to_kebab_case()))
+        while let Some(value) = chars.next() {
+            match value {
+                '\u{002e}' |
+                '\u{002f}' |
+                '\u{0040}' |
+                '\u{0060}' |
+                '\u{0000}'...'\u{001f}' |
+                '\u{0021}'...'\u{0029}' |
+                '\u{002a}'...'\u{002c}' |
+                '\u{003a}'...'\u{003f}' |
+                '\u{005b}'...'\u{005e}' |
+                '\u{007b}'...'\u{007f}' => {
+                    bail!("reserved '{}'", value);
+                }
+                '_' | '-' | ' ' => match chars.peek() {
+                    Some(&'-') | Some(&'_') | Some(&' ') | Some(&'A'...'Z') => {
+                        continue;
+                    }
+                    Some(_) => {
+                        dest.push('-');
+                    }
+                    None => {
+                        bail!("cannot end with '{}'", value);
+                    }
+                },
+                'A'...'Z' if dest.ends_with('-') => {
+                    dest.push(as_lowercase(value));
+                }
+                'A'...'Z' => {
+                    dest.push('-');
+                    dest.push(as_lowercase(value));
+                }
+                _ => {
+                    dest.push(value);
+                }
+            }
+        }
+
+        Ok(Key(dest))
     }
 }
 
@@ -188,4 +198,9 @@ impl Serialize for Key {
     {
         serializer.serialize_str(self)
     }
+}
+
+#[inline]
+fn as_lowercase(value: char) -> char {
+    (value as u8 + 32) as char
 }
