@@ -18,6 +18,12 @@ pub struct JsonApi {
     _ext: (),
 }
 
+impl JsonApi {
+    pub fn builder() -> JsonApiBuilder {
+        Default::default()
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct JsonApiBuilder {
     meta: Vec<(String, Value)>,
@@ -25,13 +31,10 @@ pub struct JsonApiBuilder {
 }
 
 impl JsonApiBuilder {
-    pub fn finalize(&mut self) -> Result<JsonApi, Error> {
-        let meta = builder::map(&mut self.meta, Ok)?;
-        let version = self.version.unwrap_or_default();
-
+    pub fn build(&mut self) -> Result<JsonApi, Error> {
         Ok(JsonApi {
-            meta,
-            version,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
+            version: self.version.unwrap_or_default(),
             _ext: (),
         })
     }

@@ -13,7 +13,7 @@ macro_rules! catchers {
                 .map(String::from)
                 .unwrap_or(format!("{}", $status));
 
-            let mut e = ::json_api::doc::Error::build();
+            let mut e = ::json_api::doc::Error::builder();
 
             e.status($status);
 
@@ -21,9 +21,9 @@ macro_rules! catchers {
                 e.title(&reason);
             }
 
-            ::json_api::ErrorDocument::build()
-                .error(e.finalize().map_err(|_| Status::InternalServerError)?)
-                .finalize()
+            ::json_api::ErrorDocument::builder()
+                .error(e.build().map_err(|_| Status::InternalServerError)?)
+                .build()
                 .map_err(|_| Status::InternalServerError)
                 .and_then(response::with_body)
                 .map(move |mut resp| {

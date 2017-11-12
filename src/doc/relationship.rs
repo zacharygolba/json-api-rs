@@ -16,7 +16,7 @@ pub struct Relationship {
 }
 
 impl Relationship {
-    pub fn build() -> RelationshipBuilder {
+    pub fn builder() -> RelationshipBuilder {
         Default::default()
     }
 }
@@ -29,15 +29,11 @@ pub struct RelationshipBuilder {
 }
 
 impl RelationshipBuilder {
-    pub fn finalize(&mut self) -> Result<Relationship, Error> {
-        let data = builder::required("data", &mut self.data)?;
-        let links = builder::map(&mut self.links, Ok)?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-
+    pub fn build(&mut self) -> Result<Relationship, Error> {
         Ok(Relationship {
-            data,
-            links,
-            meta,
+            data: builder::required("data", &mut self.data)?,
+            links: builder::iter(&mut self.links, builder::parse_key)?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             _ext: (),
         })
     }

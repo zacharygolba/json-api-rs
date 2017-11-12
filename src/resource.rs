@@ -11,17 +11,17 @@ macro_rules! resource {
     ($target:ident, |&$ctx:ident| { $($rest:tt)* }) => {
         impl $crate::Resource for $target {
             fn ident(&$ctx) -> Result<$crate::doc::Identifier, $crate::error::Error> {
-                let mut ident = $crate::doc::Identifier::build();
+                let mut ident = $crate::doc::Identifier::builder();
 
                 expand_resource_impl!(@id $ctx, ident, { $($rest)* });
                 expand_resource_impl!(@kind $ctx, ident, { $($rest)* });
                 expand_resource_impl!(@meta $ctx, ident, { $($rest)* });
 
-                ident.finalize()
+                ident.build()
             }
 
             fn object(&$ctx) -> Result<$crate::doc::Object, $crate::error::Error> {
-                let mut object = $crate::doc::Object::build();
+                let mut object = $crate::doc::Object::builder();
 
                 expand_resource_impl!(@attrs $ctx, object, { $($rest)* });
                 expand_resource_impl!(@id $ctx, object, { $($rest)* });
@@ -30,7 +30,7 @@ macro_rules! resource {
                 expand_resource_impl!(@meta $ctx, object, { $($rest)* });
                 expand_resource_impl!(@rel $ctx, object, { $($rest)* });
 
-                object.finalize()
+                object.build()
             }
         }
     };
@@ -68,9 +68,9 @@ macro_rules! expand_resource_impl {
 
     (@rel $ctx:ident, $builder:ident, { has_many $key:expr, { $($body:tt)* } $($rest:tt)* }) => {
         $builder.relationship($key, {
-            let mut relationship = $crate::doc::Relationship::build();
+            let mut relationship = $crate::doc::Relationship::builder();
             expand_resource_impl!(@has_many $ctx, relationship, { $($body)* });
-            relationship.finalize()?
+            relationship.build()?
         });
 
         expand_resource_impl!(@rel $ctx, $builder, { $($rest)* });
@@ -78,9 +78,9 @@ macro_rules! expand_resource_impl {
 
     (@rel $ctx:ident, $builder:ident, { has_one $key:expr, { $($body:tt)* } $($rest:tt)* }) => {
         $builder.relationship($key, {
-            let mut relationship = $crate::doc::Relationship::build();
+            let mut relationship = $crate::doc::Relationship::builder();
             expand_resource_impl!(@has_one $ctx, relationship, { $($body)* });
-            relationship.finalize()?
+            relationship.build()?
         });
 
         expand_resource_impl!(@rel $ctx, $builder, { $($rest)* });
@@ -130,11 +130,11 @@ macro_rules! expand_resource_impl {
     };
 
     (@link $ctx:ident, $builder:ident, { href $value:block $($rest:tt)* }) => {{
-        let mut link = $crate::doc::Link::build();
+        let mut link = $crate::doc::Link::builder();
 
         link.href($value);
         expand_resource_impl!(@meta $ctx, link, { $($rest)* });
-        link.finalize()?
+        link.build()?
     }};
 
     (@meta $ctx:ident, $builder:ident, { meta $key:expr, $value:block $($rest:tt)* }) => {
