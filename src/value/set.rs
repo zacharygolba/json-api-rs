@@ -21,23 +21,109 @@ pub struct Set<T: Eq + Hash = Key> {
 }
 
 impl<T: Eq + Hash> Set<T> {
+    /// Creates an empty `Set`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # fn main() {
+    /// use json_api::value::{Key, Set};
+    /// let mut set = Set::<Key>::new();
+    /// # }
+    /// ```
     pub fn new() -> Self {
         Default::default()
     }
 
+    /// Creates a new empty `Set`, with specified capacity.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let mut set = Set::with_capacity(2);
+    ///
+    /// set.insert("x");
+    /// set.insert("y");
+    ///
+    /// // The next insert will likely require reallocation...
+    /// set.insert("z");
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
     pub fn with_capacity(capacity: usize) -> Self {
         let inner = Map::with_capacity(capacity);
         Set { inner }
     }
 
+    /// Returns the number of elements the set can hold without reallocating.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::{Key, Set};
+    /// #
+    /// # fn main() {
+    /// let set = Set::<Key>::with_capacity(2);
+    /// assert!(set.capacity() >= 2);
+    /// # }
+    /// ```
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
     }
 
+    /// Clears the set, removing all elements. Keeps the allocated memory for reuse.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// set.insert("x");
+    /// set.clear();
+    /// assert!(set.is_empty());
+    /// # }
+    /// ```
     pub fn clear(&mut self) {
         self.inner.clear();
     }
 
+    /// Returns true if the set contains the specified value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// set.insert(1);
+    /// assert!(set.contains(&1));
+    /// assert!(!set.contains(&2));
+    /// # }
+    /// ```
     pub fn contains<Q: ?Sized>(&self, key: &Q) -> bool
     where
         Q: Equivalent<T> + Hash,
@@ -45,28 +131,150 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.contains_key(key)
     }
 
+    /// Clears the set, returning all elements in an iterator. Keeps the allocated
+    /// memory for reuse.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// set.insert(1);
+    /// set.insert(2);
+    ///
+    /// for item in set.drain(..) {
+    ///     assert!(item == 1 || item == 2);
+    /// }
+    ///
+    /// assert!(set.is_empty());
+    /// # }
+    /// ```
     pub fn drain(&mut self, range: RangeFull) -> Drain<T> {
         let iter = self.inner.drain(range);
         Drain { iter }
     }
 
+    /// Adds a value to the set.
+    ///
+    /// If the set did not have this value present, `true` is returned.
+    ///
+    /// If the set did have this value present, `false` is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// assert_eq!(set.insert(1), true);
+    /// assert_eq!(set.insert(1), false);
+    /// assert_eq!(set.len(), 1);
+    /// # }
+    /// ```
     pub fn insert(&mut self, key: T) -> bool {
         self.inner.insert(key, ()).is_none()
     }
 
+    /// Returns true if the set does not contain any elements.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    /// assert!(set.is_empty());
+    ///
+    /// set.insert("x");
+    /// assert!(!set.is_empty());
+    /// # }
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Return an iterator visiting all the elements of the set in the order in which
+    /// they were inserted.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// set.insert("a");
+    /// set.insert("b");
+    /// set.insert("c");
+    ///
+    /// let mut iter = set.iter();
+    ///
+    /// assert_eq!(iter.next(), Some(&"a"));
+    /// assert_eq!(iter.next(), Some(&"b"));
+    /// assert_eq!(iter.next(), Some(&"c"));
+    /// assert_eq!(iter.next(), None);
+    /// # }
+    /// ```
     pub fn iter(&self) -> Iter<T> {
         let iter = self.inner.keys();
         Iter { iter }
     }
 
+    /// Return the number of elements in the set.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    /// assert_eq!(set.len(), 0);
+    ///
+    /// set.insert("x");
+    /// assert_eq!(set.len(), 1);
+    /// # }
+    /// ```
     pub fn len(&self) -> usize {
         self.inner.len()
     }
 
+    /// Removes a value from the set. Returns `true` if the value was present in the set.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::new();
+    ///
+    /// set.insert("x");
+    ///
+    /// assert!(set.remove("x"));
+    /// assert!(!set.remove("x"));
+    /// assert_eq!(set.len(), 0);
+    /// # }
+    /// ```
     pub fn remove<Q: ?Sized>(&mut self, key: &Q) -> bool
     where
         Q: Equivalent<T> + Hash,
@@ -74,6 +282,28 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.remove(key).is_some()
     }
 
+    /// Reserves capacity for at least additional more elements to be inserted
+    /// in the `Set`. The collection may reserve more space to avoid frequent
+    /// reallocations.
+    ///
+    /// # Note
+    ///
+    /// This method has yet to be fully implemented in the [`ordermap`] crate.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Set;
+    /// #
+    /// # fn main() {
+    /// let mut set = Set::<String>::new();
+    /// set.reserve(10);
+    /// # }
+    /// ```
+    ///
+    /// [`ordermap`]: https://docs.rs/ordermap
     pub fn reserve(&mut self, additional: usize) {
         self.inner.reserve(additional)
     }
