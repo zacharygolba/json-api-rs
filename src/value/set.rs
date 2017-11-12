@@ -29,6 +29,10 @@ impl<T: Eq + Hash> Set<T> {
         Set { inner }
     }
 
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
     pub fn clear(&mut self) {
         self.inner.clear();
     }
@@ -67,6 +71,10 @@ impl<T: Eq + Hash> Set<T> {
         Q: Equivalent<T> + Hash,
     {
         self.inner.remove(key).is_some()
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional)
     }
 }
 

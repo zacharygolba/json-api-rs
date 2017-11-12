@@ -167,7 +167,87 @@ impl Path {
     /// # }
     /// ```
     pub fn push(&mut self, key: Key) {
-        self.0.push(key)
+        self.0.push(key);
+    }
+
+    /// Reserves capacity for at least `additional` more keys to be inserted.
+    /// Does nothing if the capacity is already sufficient.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the new capacity overflows usize.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn main() {
+    /// let mut path = Path::new();
+    ///
+    /// path.reserve(10);
+    /// assert!(path.capacity() >= 10);
+    /// # }
+    /// ```
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional);
+    }
+
+    /// Reserves the minimum capacity for exactly `additional` more keys to be inserted.
+    /// Does nothing if the capacity is already sufficient.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the new capacity overflows usize.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn main() {
+    /// let mut path = Path::new();
+    ///
+    /// path.reserve_exact(10);
+    /// assert!(path.capacity() >= 10);
+    /// # }
+    /// ```
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.0.reserve_exact(additional);
+    }
+
+    /// Shrinks the capacity of the path as much as possible.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// # use json_api::value::Path;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// let mut path = Path::with_capacity(10);
+    ///
+    /// path.push("authors".parse()?);
+    /// path.push("name".parse()?);
+    ///
+    /// path.shrink_to_fit();
+    /// assert!(path.capacity() >= 2);
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// #     example().unwrap();
+    /// # }
+    /// ```
+    pub fn shrink_to_fit(&mut self) {
+        self.0.shrink_to_fit();
     }
 
     /// Converts the `Path` into an owned byte vector.

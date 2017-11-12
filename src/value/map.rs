@@ -33,6 +33,10 @@ where
         Map { inner }
     }
 
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
+
     pub fn clear(&mut self) {
         self.inner.clear();
     }
@@ -88,6 +92,10 @@ where
         Q: Equivalent<K> + Hash,
     {
         self.inner.remove(key)
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        self.inner.reserve(additional)
     }
 
     pub fn values(&self) -> Values<K, V> {
