@@ -22,7 +22,7 @@ pub struct Object {
 }
 
 impl Object {
-    pub fn build() -> ObjectBuilder {
+    pub fn builder() -> ObjectBuilder {
         Default::default()
     }
 }
@@ -38,21 +38,14 @@ pub struct ObjectBuilder {
 }
 
 impl ObjectBuilder {
-    pub fn finalize(&mut self) -> Result<Object, Error> {
-        let attributes = builder::map(&mut self.attributes, Ok)?;
-        let id = builder::required("id", &mut self.id)?;
-        let kind = builder::required("kind", &mut self.kind)?.parse()?;
-        let links = builder::map(&mut self.links, Ok)?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-        let relationships = builder::map(&mut self.relationships, Ok)?;
-
+    pub fn build(&mut self) -> Result<Object, Error> {
         Ok(Object {
-            attributes,
-            id,
-            kind,
-            links,
-            meta,
-            relationships,
+            attributes: builder::iter(&mut self.attributes, builder::parse_key)?,
+            id: builder::required("id", &mut self.id)?,
+            kind: builder::required("kind", &mut self.kind)?.parse()?,
+            links: builder::iter(&mut self.links, builder::parse_key)?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
+            relationships: builder::iter(&mut self.relationships, builder::parse_key)?,
             _ext: (),
         })
     }

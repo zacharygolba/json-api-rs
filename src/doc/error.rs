@@ -27,7 +27,7 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn build() -> ErrorBuilder {
+    pub fn builder() -> ErrorBuilder {
         Default::default()
     }
 }
@@ -45,13 +45,13 @@ pub struct ErrorBuilder {
 }
 
 impl ErrorBuilder {
-    pub fn finalize(&mut self) -> Result<Error, ::error::Error> {
+    pub fn build(&mut self) -> Result<Error, ::error::Error> {
         Ok(Error {
             code: builder::optional(&mut self.code),
             detail: builder::optional(&mut self.detail),
             id: builder::optional(&mut self.id),
-            links: builder::map(&mut self.links, Ok)?,
-            meta: builder::map(&mut self.meta, Ok)?,
+            links: builder::iter(&mut self.links, builder::parse_key)?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             source: builder::optional(&mut self.source),
             status: builder::optional(&mut self.status),
             title: builder::optional(&mut self.title),

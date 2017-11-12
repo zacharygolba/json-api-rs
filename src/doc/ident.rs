@@ -15,7 +15,7 @@ pub struct Identifier {
 }
 
 impl Identifier {
-    pub fn build() -> IdentifierBuilder {
+    pub fn builder() -> IdentifierBuilder {
         Default::default()
     }
 }
@@ -28,15 +28,11 @@ pub struct IdentifierBuilder {
 }
 
 impl IdentifierBuilder {
-    pub fn finalize(&mut self) -> Result<Identifier, Error> {
-        let id = builder::required("id", &mut self.id)?;
-        let kind = builder::required("kind", &mut self.kind)?.parse()?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-
+    pub fn build(&mut self) -> Result<Identifier, Error> {
         Ok(Identifier {
-            id,
-            kind,
-            meta,
+            id: builder::required("id", &mut self.id)?,
+            kind: builder::required("kind", &mut self.kind)?.parse()?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             _ext: (),
         })
     }

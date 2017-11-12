@@ -39,7 +39,7 @@ pub struct Document<T: PrimaryData> {
 }
 
 impl<T: PrimaryData> Document<T> {
-    pub fn build() -> DocumentBuilder<T> {
+    pub fn builder() -> DocumentBuilder<T> {
         Default::default()
     }
 }
@@ -54,19 +54,13 @@ pub struct DocumentBuilder<T: PrimaryData> {
 }
 
 impl<T: PrimaryData> DocumentBuilder<T> {
-    pub fn finalize(&mut self) -> Result<Document<T>, ::error::Error> {
-        let data = builder::required("data", &mut self.data)?;
-        let included = builder::iter(&mut self.included, Ok)?;
-        let jsonapi = builder::default(&mut self.jsonapi);
-        let links = builder::map(&mut self.links, Ok)?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-
+    pub fn build(&mut self) -> Result<Document<T>, ::error::Error> {
         Ok(Document {
-            data,
-            included,
-            jsonapi,
-            links,
-            meta,
+            data: builder::required("data", &mut self.data)?,
+            included: builder::iter(&mut self.included, Ok)?,
+            jsonapi: builder::default(&mut self.jsonapi),
+            links: builder::iter(&mut self.links, builder::parse_key)?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             _ext: (),
         })
     }
@@ -134,7 +128,7 @@ pub struct ErrorDocument {
 }
 
 impl ErrorDocument {
-    pub fn build() -> ErrorDocumentBuilder {
+    pub fn builder() -> ErrorDocumentBuilder {
         Default::default()
     }
 }
@@ -149,17 +143,12 @@ pub struct ErrorDocumentBuilder {
 }
 
 impl ErrorDocumentBuilder {
-    pub fn finalize(&mut self) -> Result<ErrorDocument, ::error::Error> {
-        let errors = builder::iter(&mut self.errors, Ok)?;
-        let jsonapi = builder::default(&mut self.jsonapi);
-        let links = builder::map(&mut self.links, Ok)?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-
+    pub fn build(&mut self) -> Result<ErrorDocument, ::error::Error> {
         Ok(ErrorDocument {
-            errors,
-            jsonapi,
-            links,
-            meta,
+            errors: builder::iter(&mut self.errors, Ok)?,
+            jsonapi: builder::default(&mut self.jsonapi),
+            links: builder::iter(&mut self.links, builder::parse_key)?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             _ext: (),
         })
     }

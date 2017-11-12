@@ -30,7 +30,7 @@ pub struct Query {
 }
 
 impl Query {
-    pub fn build() -> QueryBuilder {
+    pub fn builder() -> QueryBuilder {
         Default::default()
     }
 }
@@ -45,7 +45,7 @@ pub struct QueryBuilder {
 }
 
 impl QueryBuilder {
-    pub fn finalize(&mut self) -> Result<Query, Error> {
+    pub fn build(&mut self) -> Result<Query, Error> {
         Ok(Query {
             fields: builder::iter(&mut self.fields, |(key, mut fields)| {
                 let key = key.parse()?;

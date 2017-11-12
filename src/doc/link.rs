@@ -19,7 +19,7 @@ pub struct Link {
 }
 
 impl Link {
-    pub fn build() -> LinkBuilder {
+    pub fn builder() -> LinkBuilder {
         Default::default()
     }
 }
@@ -143,13 +143,10 @@ pub struct LinkBuilder {
 }
 
 impl LinkBuilder {
-    pub fn finalize(&mut self) -> Result<Link, Error> {
-        let href = builder::required("href", &mut self.href)?.parse()?;
-        let meta = builder::map(&mut self.meta, Ok)?;
-
+    pub fn build(&mut self) -> Result<Link, Error> {
         Ok(Link {
-            href,
-            meta,
+            href: builder::required("href", &mut self.href)?.parse()?,
+            meta: builder::iter(&mut self.meta, builder::parse_key)?,
             _ext: (),
         })
     }
