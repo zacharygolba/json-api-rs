@@ -28,8 +28,10 @@ error_chain!{
         }
 
         UnsupportedVersion(version: String) {
-            description("The specified version of is not supported by this implementation.")
-            display(r#"Version "{}" is not yet supported by this implementation."#, version)
+            description("The specified version of is not \
+                         supported by this implementation.")
+            display(r#"Version "{}" is not yet supported by \
+                       this implementation."#, version)
         }
     }
 }
