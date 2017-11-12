@@ -12,53 +12,53 @@ type Mapping = OrderMap<&'static str, Query>;
 fn from_mapping() -> Result<Mapping, Error> {
     Ok(ordermap!{
         "" => Default::default(),
-        "fields%5Barticles%5D=title" => Query::build()
+        "fields%5Barticles%5D=title" => Query::builder()
             .fields("articles", vec!["title"])
-            .finalize()?,
+            .build()?,
         concat!(
             "fields%5Barticles%5D=body%2Ctitle%2Cpublished-at&",
             "fields%5Bcomments%5D=body&",
             "fields%5Busers%5D=name",
-        ) => Query::build()
+        ) => Query::builder()
             .fields("articles", vec!["body", "title", "published-at"])
             .fields("comments", vec!["body"])
             .fields("users", vec!["name"])
-            .finalize()?,
-        "filter%5Busers.name%5D=Alfred+Pennyworth" => Query::build()
+            .build()?,
+        "filter%5Busers.name%5D=Alfred+Pennyworth" => Query::builder()
             .filter("users.name", "Alfred Pennyworth")
-            .finalize()?,
-        "include=author" => Query::build()
+            .build()?,
+        "include=author" => Query::builder()
             .include("author")
-            .finalize()?,
-        "include=author%2Ccomments%2Ccomments.author" => Query::build()
+            .build()?,
+        "include=author%2Ccomments%2Ccomments.author" => Query::builder()
             .include("author")
             .include("comments")
             .include("comments.author")
-            .finalize()?,
-        "page%5Bnumber%5D=0" => Query::build()
+            .build()?,
+        "page%5Bnumber%5D=0" => Query::builder()
             .page(1, None)
-            .finalize()?,
-        "page%5Bnumber%5D=1" => Query::build()
+            .build()?,
+        "page%5Bnumber%5D=1" => Query::builder()
             .page(1, None)
-            .finalize()?,
-        "page%5Bsize%5D=10" => Query::build()
+            .build()?,
+        "page%5Bsize%5D=10" => Query::builder()
             .page(1, Some(10))
-            .finalize()?,
-        "page%5Bnumber%5D=2&page%5Bsize%5D=15" => Query::build()
+            .build()?,
+        "page%5Bnumber%5D=2&page%5Bsize%5D=15" => Query::builder()
             .page(2, Some(15))
-            .finalize()?,
-        "sort=-published-at" => Query::build()
+            .build()?,
+        "sort=-published-at" => Query::builder()
             .sort("published-at", Direction::Desc)
-            .finalize()?,
-        "sort=published-at%2C-title" => Query::build()
+            .build()?,
+        "sort=published-at%2C-title" => Query::builder()
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
-            .finalize()?,
-        "sort=published-at%2C-title%2C-author.name" => Query::build()
+            .build()?,
+        "sort=published-at%2C-title%2C-author.name" => Query::builder()
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
             .sort("author.name", Direction::Desc)
-            .finalize()?,
+            .build()?,
         concat!(
             "fields%5Barticles%5D=body%2Ctitle%2Cpublished-at&",
             "fields%5Bcomments%5D=body&",
@@ -67,7 +67,7 @@ fn from_mapping() -> Result<Mapping, Error> {
             "include=author%2Ccomments%2Ccomments.author&",
             "page%5Bnumber%5D=2&page%5Bsize%5D=15&",
             "sort=published-at%2C-title%2C-author.name",
-        ) => Query::build()
+        ) => Query::builder()
             .fields("articles", vec!["body", "title", "published-at"])
             .fields("comments", vec!["body"])
             .fields("users", vec!["name"])
@@ -79,7 +79,7 @@ fn from_mapping() -> Result<Mapping, Error> {
             .sort("published-at", Direction::Asc)
             .sort("title", Direction::Desc)
             .sort("author.name", Direction::Desc)
-            .finalize()?,
+            .build()?,
     })
 }
 
