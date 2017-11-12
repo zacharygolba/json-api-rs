@@ -86,26 +86,15 @@ impl FromStr for Key {
     type Err = Error;
 
     fn from_str(source: &str) -> Result<Key, Self::Err> {
+        if source.is_empty() {
+            bail!("cannot be blank");
+        }
+
         // We should reserve a bit more than what we need so in
         // the event that we end up converting camelCase to
         // kebab-case, we don't have to reallocate.
         let mut dest = String::with_capacity(source.len() + 10);
         let mut chars = source.chars().peekable();
-
-        match chars.next() {
-            Some(value @ '_') | Some(value @ '-') | Some(value @ ' ') => {
-                bail!("cannot start with '{}'", value);
-            }
-            Some(value @ 'A'...'Z') => {
-                dest.push(as_lowercase(value));
-            }
-            Some(value) => {
-                dest.push(value);
-            }
-            None => {
-                bail!("cannot be blank");
-            }
-        }
 
         while let Some(value) = chars.next() {
             match value {
@@ -120,6 +109,9 @@ impl FromStr for Key {
                 '\u{005b}'...'\u{005e}' |
                 '\u{007b}'...'\u{007f}' => {
                     bail!("reserved '{}'", value);
+                }
+                '_' | '-' | ' ' if dest.is_empty() => {
+                    bail!("cannot start with '{}'", value);
                 }
                 '_' | '-' | ' ' => match chars.peek() {
                     Some(&'-') | Some(&'_') | Some(&' ') | Some(&'A'...'Z') => {
