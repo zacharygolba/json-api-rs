@@ -18,7 +18,7 @@ impl Query {
         self.inner
     }
 
-    pub fn fields(&self) -> map::Iter<Key, Set<Key>> {
+    pub fn fields(&self) -> map::Iter<Key, Set> {
         self.inner.fields.iter()
     }
 

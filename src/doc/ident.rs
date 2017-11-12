@@ -8,7 +8,7 @@ pub struct Identifier {
     #[serde(rename = "type")]
     pub kind: Key,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),

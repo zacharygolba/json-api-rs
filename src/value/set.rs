@@ -11,11 +11,12 @@ use ordermap::Equivalent;
 use serde::de::{Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
+use value::Key;
 use value::map::{self, Keys, Map};
 
 /// A hash set implemented as a `Map` where the value is `()`.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Set<T: Eq + Hash> {
+pub struct Set<T: Eq + Hash = Key> {
     inner: Map<T, ()>,
 }
 
@@ -37,7 +38,7 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.clear();
     }
 
-    pub fn contains<Q>(&self, key: &Q) -> bool
+    pub fn contains<Q: ?Sized>(&self, key: &Q) -> bool
     where
         Q: Equivalent<T> + Hash,
     {
@@ -66,7 +67,7 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.len()
     }
 
-    pub fn remove<Q>(&mut self, key: &Q) -> bool
+    pub fn remove<Q: ?Sized>(&mut self, key: &Q) -> bool
     where
         Q: Equivalent<T> + Hash,
     {

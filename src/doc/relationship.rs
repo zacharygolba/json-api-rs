@@ -9,7 +9,7 @@ pub struct Relationship {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),

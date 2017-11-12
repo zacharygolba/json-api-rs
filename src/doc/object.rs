@@ -6,14 +6,14 @@ use value::{Key, Map, Value};
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Object {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub attributes: Map<Key, Value>,
+    pub attributes: Map,
     pub id: String,
     #[serde(rename = "type")]
     pub kind: Key,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub relationships: Map<Key, Relationship>,
     /// Private field for backwards compatibility.

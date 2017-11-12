@@ -41,7 +41,7 @@ pub enum Value {
     /// to be a valid JSON API [member name].
     ///
     /// [member name]: http://jsonapi.org/format/#document-member-names
-    Object(Map<Key, Value>),
+    Object(Map),
     /// Represents a JSON string.
     String(String),
 }
@@ -167,7 +167,7 @@ impl Value {
     /// assert_eq!(number.as_object(), None);
     /// # }
     /// ```
-    pub fn as_object(&self) -> Option<&Map<Key, Value>> {
+    pub fn as_object(&self) -> Option<&Map> {
         match *self {
             Value::Object(ref inner) => Some(inner),
             _ => None,
@@ -193,7 +193,7 @@ impl Value {
     /// assert_eq!(number.as_object_mut(), None);
     /// # }
     /// ```
-    pub fn as_object_mut(&mut self) -> Option<&mut Map<Key, Value>> {
+    pub fn as_object_mut(&mut self) -> Option<&mut Map> {
         match *self {
             Value::Object(ref mut inner) => Some(inner),
             _ => None,
@@ -662,8 +662,8 @@ impl From<String> for Value {
     }
 }
 
-impl From<Map<Key, Value>> for Value {
-    fn from(data: Map<Key, Value>) -> Self {
+impl From<Map> for Value {
+    fn from(data: Map) -> Self {
         Value::Object(data)
     }
 }

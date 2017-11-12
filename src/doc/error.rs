@@ -14,7 +14,7 @@ pub struct Error {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<Source>,
     #[serde(skip_serializing_if = "Option::is_none", with = "serde_status")]
