@@ -10,7 +10,7 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use value::Key;
 
-/// Represent a dot-separated list of member names.
+/// Represents a dot-separated list of member names.
 ///
 /// See also: [relationship path].
 ///
