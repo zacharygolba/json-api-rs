@@ -7,7 +7,7 @@ use serde_json::{self, Value as JsonValue};
 use error::Error;
 use value::Value;
 
-/// Interpret a JSON API value as an instance of type `T`.
+/// Convert a `T` into a value.
 pub fn to_value<T>(value: T) -> Result<Value, Error>
 where
     T: Serialize,
@@ -15,7 +15,7 @@ where
     from_json(serde_json::to_value(value)?)
 }
 
-/// Convert a `T` into a JSON API value.
+/// Interpret a value as an instance of type `T`.
 pub fn from_value<T>(value: Value) -> Result<T, Error>
 where
     T: DeserializeOwned,
