@@ -87,8 +87,7 @@ fn to_mapping() -> Result<Mapping, Error> {
     let mapping = from_mapping()?
         .into_iter()
         .map(|(key, value)| match key {
-            "page%5Bnumber%5D=0" => ("", value),
-            "page%5Bnumber%5D=1" => ("", value),
+            "page%5Bnumber%5D=0" | "page%5Bnumber%5D=1" => ("", value),
             _ => (key, value),
         })
         .collect();

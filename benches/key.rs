@@ -19,7 +19,7 @@ const SOURCES: [&str; 6] = [
 
 #[bench]
 fn from_str(b: &mut Bencher) {
-    b.iter(|| for source in SOURCES.iter() {
+    b.iter(|| for source in &SOURCES {
         Key::from_str(source).unwrap();
     })
 }

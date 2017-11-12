@@ -598,7 +598,7 @@ impl From<bool> for Value {
 
 impl From<f32> for Value {
     fn from(n: f32) -> Self {
-        From::from(n as f64)
+        Value::from(f64::from(n))
     }
 }
 
@@ -610,19 +610,19 @@ impl From<f64> for Value {
 
 impl From<i8> for Value {
     fn from(n: i8) -> Self {
-        From::from(n as i64)
+        Value::from(i64::from(n))
     }
 }
 
 impl From<i16> for Value {
     fn from(n: i16) -> Self {
-        From::from(n as i64)
+        Value::from(i64::from(n))
     }
 }
 
 impl From<i32> for Value {
     fn from(n: i32) -> Self {
-        From::from(n as i64)
+        Value::from(i64::from(n))
     }
 }
 
@@ -634,19 +634,19 @@ impl From<i64> for Value {
 
 impl From<u8> for Value {
     fn from(n: u8) -> Self {
-        From::from(n as u64)
+        Value::from(u64::from(n))
     }
 }
 
 impl From<u16> for Value {
     fn from(n: u16) -> Self {
-        From::from(n as u64)
+        Value::from(u64::from(n))
     }
 }
 
 impl From<u32> for Value {
     fn from(n: u32) -> Self {
-        From::from(n as u64)
+        Value::from(u64::from(n))
     }
 }
 
@@ -738,73 +738,73 @@ impl PartialEq<bool> for Value {
 
 impl PartialEq<f32> for Value {
     fn eq(&self, rhs: &f32) -> bool {
-        self.as_f64().map_or(false, |lhs| lhs == (*rhs as f64))
+        *self == f64::from(*rhs)
     }
 }
 
 impl PartialEq<f64> for Value {
     fn eq(&self, rhs: &f64) -> bool {
-        self.as_f64().map_or(false, |lhs| lhs == (*rhs as f64))
+        self.as_f64().map_or(false, |lhs| lhs == *rhs)
     }
 }
 
 impl PartialEq<i8> for Value {
     fn eq(&self, rhs: &i8) -> bool {
-        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+        *self == i64::from(*rhs)
     }
 }
 
 impl PartialEq<i16> for Value {
     fn eq(&self, rhs: &i16) -> bool {
-        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+        *self == i64::from(*rhs)
     }
 }
 
 impl PartialEq<i32> for Value {
     fn eq(&self, rhs: &i32) -> bool {
-        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+        *self == i64::from(*rhs)
     }
 }
 
 impl PartialEq<i64> for Value {
     fn eq(&self, rhs: &i64) -> bool {
-        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+        self.as_i64().map_or(false, |lhs| lhs == *rhs)
     }
 }
 
 impl PartialEq<isize> for Value {
     fn eq(&self, rhs: &isize) -> bool {
-        self.as_i64().map_or(false, |lhs| lhs == (*rhs as i64))
+        *self == (*rhs as i64)
     }
 }
 
 impl PartialEq<u8> for Value {
     fn eq(&self, rhs: &u8) -> bool {
-        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+        *self == u64::from(*rhs)
     }
 }
 
 impl PartialEq<u16> for Value {
     fn eq(&self, rhs: &u16) -> bool {
-        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+        *self == u64::from(*rhs)
     }
 }
 
 impl PartialEq<u32> for Value {
     fn eq(&self, rhs: &u32) -> bool {
-        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+        *self == u64::from(*rhs)
     }
 }
 
 impl PartialEq<u64> for Value {
     fn eq(&self, rhs: &u64) -> bool {
-        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+        self.as_u64().map_or(false, |lhs| lhs == *rhs)
     }
 }
 
 impl PartialEq<usize> for Value {
     fn eq(&self, rhs: &usize) -> bool {
-        self.as_u64().map_or(false, |lhs| lhs == (*rhs as u64))
+        *self == (*rhs as u64)
     }
 }
 
