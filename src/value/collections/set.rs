@@ -86,7 +86,8 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.capacity()
     }
 
-    /// Clears the set, removing all elements. Keeps the allocated memory for reuse.
+    /// Clears the set, removing all elements. Keeps the allocated memory for
+    /// reuse.
     ///
     /// # Example
     ///
@@ -131,8 +132,8 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.contains_key(key)
     }
 
-    /// Clears the set, returning all elements in an iterator. Keeps the allocated
-    /// memory for reuse.
+    /// Clears the set, returning all elements in an iterator. Keeps the
+    /// allocated memory for reuse.
     ///
     /// # Example
     ///
@@ -205,8 +206,8 @@ impl<T: Eq + Hash> Set<T> {
         self.len() == 0
     }
 
-    /// Return an iterator visiting all the elements of the set in the order in which
-    /// they were inserted.
+    /// Return an iterator visiting all the elements of the set in the order in
+    /// which they were inserted.
     ///
     /// # Example
     ///
@@ -256,7 +257,8 @@ impl<T: Eq + Hash> Set<T> {
         self.inner.len()
     }
 
-    /// Removes a value from the set. Returns `true` if the value was present in the set.
+    /// Removes a value from the set. Returns `true` if the value was present
+    /// in the set.
     ///
     /// # Example
     ///

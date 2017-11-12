@@ -1,7 +1,7 @@
 //! A hash map implementation with consistent ordering.
 //!
-//! The types in this module are commonly used as the underlying data structure of
-//! arbitrary objects found in JSON API data.
+//! The types in this module are commonly used as the underlying data structure
+//! of arbitrary objects found in JSON API data.
 
 use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
@@ -75,7 +75,8 @@ where
         Map { inner }
     }
 
-    /// Returns the number of key-value pairs the map can hold without reallocating.
+    /// Returns the number of key-value pairs the map can hold without
+    /// reallocating.
     ///
     /// # Example
     ///
@@ -139,8 +140,8 @@ where
         self.inner.contains_key(key)
     }
 
-    /// Clears the map, returning all key-value pairs as an iterator. Keeps the allocated
-    /// memory for reuse.
+    /// Clears the map, returning all key-value pairs as an iterator. Keeps the
+    /// allocated memory for reuse.
     ///
     /// # Example
     ///
@@ -195,8 +196,8 @@ where
 
     /// Inserts a key-value pair into the map.
     ///
-    /// If a value already existed for key, that old value is returned in `Some`;
-    /// otherwise, `None` is returned.
+    /// If a value already existed for key, that old value is returned in
+    /// `Some`; otherwise, `None` is returned.
     ///
     /// # Example
     ///
@@ -216,8 +217,8 @@ where
         self.inner.insert(key, value)
     }
 
-    /// Return an iterator visiting all the key-value pairs of the map in the order
-    /// in which they were inserted.
+    /// Return an iterator visiting all the key-value pairs of the map in the
+    /// order in which they were inserted.
     ///
     /// # Example
     ///
@@ -243,8 +244,9 @@ where
         Iter { iter }
     }
 
-    /// Return an iterator visiting all the key-value pairs of the map in the order
-    /// in which they were inserted, with mutable references to the values.
+    /// Return an iterator visiting all the key-value pairs of the map in the
+    /// order in which they were inserted, with mutable references to the
+    /// values.
     ///
     /// # Example
     ///
@@ -274,7 +276,8 @@ where
         IterMut { iter }
     }
 
-    /// Return an iterator visiting all keys in the order in which they were inserted.
+    /// Return an iterator visiting all keys in the order in which they were
+    /// inserted.
     ///
     /// # Example
     ///
@@ -342,8 +345,8 @@ where
         self.len() == 0
     }
 
-    /// Removes a key from the map, returning the value at the key if the key was
-    /// previously in the map.
+    /// Removes a key from the map, returning the value at the key if the key
+    /// was previously in the map.
     ///
     /// # Example
     ///
@@ -395,7 +398,8 @@ where
         self.inner.reserve(additional);
     }
 
-    /// Return an iterator visiting all values in the order in which they were inserted.
+    /// Return an iterator visiting all values in the order in which they were
+    /// inserted.
     ///
     /// # Example
     ///
@@ -421,8 +425,8 @@ where
         Values { iter }
     }
 
-    /// Return an iterator visiting all values mutably in the order in which they were
-    /// inserted.
+    /// Return an iterator visiting all values mutably in the order in which
+    /// they were inserted.
     ///
     /// # Example
     ///

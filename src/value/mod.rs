@@ -24,7 +24,8 @@ pub use self::fields::{Key, Path};
 
 /// Represents any valid JSON API value.
 ///
-/// Like [`serde_json::Value`], but with spec-compliance baked into the type system.
+/// Like [`serde_json::Value`], but with spec-compliance baked into the type
+/// system.
 ///
 /// [`serde_json::Value`]: https://docs.serde.rs/serde_json/enum.Value.html
 #[derive(Clone, Debug, PartialEq)]
@@ -71,8 +72,8 @@ impl Value {
         }
     }
 
-    /// Optionally get the underlying vector as a mutable slice. Returns `None` if
-    /// the `Value` is not an array.
+    /// Optionally get the underlying vector as a mutable slice. Returns `None`
+    /// if the `Value` is not an array.
     ///
     /// # Example
     ///
@@ -146,8 +147,8 @@ impl Value {
         }
     }
 
-    /// Optionally get a reference to the inner map. Returns `None` if the `Value` is not
-    /// an object.
+    /// Optionally get a reference to the inner map. Returns `None` if the
+    /// `Value` is not an object.
     ///
     /// # Example
     ///
@@ -172,8 +173,8 @@ impl Value {
         }
     }
 
-    /// Optionally get a mutable reference to the inner map. Returns `None` if the
-    /// `Value` is not an object.
+    /// Optionally get a mutable reference to the inner map. Returns `None` if
+    /// the `Value` is not an object.
     ///
     /// # Example
     ///
@@ -198,8 +199,8 @@ impl Value {
         }
     }
 
-    /// Optionally get the underlying string as a string slice. Returns `None` if the
-    /// `Value` is not a string.
+    /// Optionally get the underlying string as a string slice. Returns `None`
+    /// if the `Value` is not a string.
     ///
     /// # Example
     ///
@@ -224,8 +225,8 @@ impl Value {
         }
     }
 
-    /// Optionally get the underlying number as an `f64`. Returns `None` if the `Value`
-    /// cannot be represented as an `f64`.
+    /// Optionally get the underlying number as an `f64`. Returns `None` if the
+    /// `Value` cannot be represented as an `f64`.
     ///
     /// # Example
     ///
@@ -249,8 +250,8 @@ impl Value {
         }
     }
 
-    /// Optionally get the underlying number as an `i64`. Returns `None` if the `Value`
-    /// cannot be represented as an `i64`.
+    /// Optionally get the underlying number as an `i64`. Returns `None` if the
+    /// `Value` cannot be represented as an `i64`.
     ///
     /// # Example
     ///
@@ -274,8 +275,8 @@ impl Value {
         }
     }
 
-    /// Optionally get the underlying number as an `u64`. Returns `None` if the `Value`
-    /// cannot be represented as an `u64`.
+    /// Optionally get the underlying number as an `u64`. Returns `None` if the
+    /// `Value` cannot be represented as an `u64`.
     ///
     /// # Example
     ///
@@ -333,8 +334,8 @@ impl Value {
 
     /// Returns true if the `Value` is a boolean.
     ///
-    /// For any `Value` on which `is_boolean` returns true, [`as_bool`] is guaranteed
-    /// to return the boolean value.
+    /// For any `Value` on which `is_boolean` returns true, [`as_bool`] is
+    /// guaranteed to return the boolean value.
     ///
     /// # Example
     ///
@@ -361,8 +362,8 @@ impl Value {
 
     /// Returns true if the `Value` is null.
     ///
-    /// For any `Value` on which `is_null` returns true, [`as_null`] is guaranteed
-    /// to return `Some(())`.
+    /// For any `Value` on which `is_null` returns true, [`as_null`] is
+    /// guaranteed to return `Some(())`.
     ///
     /// # Example
     ///
@@ -441,8 +442,8 @@ impl Value {
 
     /// Returns true if the `Value` is a string.
     ///
-    /// For any `Value` on which `is_string` returns true, [`as_str`] is guaranteed
-    /// to return the string slice.
+    /// For any `Value` on which `is_string` returns true, [`as_str`] is
+    /// guaranteed to return the string slice.
     ///
     /// # Example
     ///
@@ -467,10 +468,11 @@ impl Value {
         }
     }
 
-    /// Returns true if the `Value` is a number that can be represented as an `f64`.
+    /// Returns true if the `Value` is a number that can be represented as an
+    /// `f64`.
     ///
-    /// For any `Value` on which `is_f64` returns true, [`as_f64`] is guaranteed to
-    /// return the floating point value.
+    /// For any `Value` on which `is_f64` returns true, [`as_f64`] is
+    /// guaranteed to return the floating point value.
     ///
     /// Currently this function returns true if and only if both [`is_i64`] and
     /// [`is_u64`] return false. This behavior is not a guarantee in the future.
@@ -500,10 +502,11 @@ impl Value {
         }
     }
 
-    /// Returns true if the `Value` is an integer between `i64::MIN` and `i64::MAX`.
+    /// Returns true if the `Value` is an integer between `i64::MIN` and
+    /// `i64::MAX`.
     ///
-    /// For any Value on which `is_i64` returns true, [`as_i64`] is guaranteed to return
-    /// the integer value.
+    /// For any Value on which `is_i64` returns true, [`as_i64`] is guaranteed
+    /// to return the integer value.
     ///
     /// # Example
     ///
@@ -534,8 +537,8 @@ impl Value {
 
     /// Returns true if the `Value` is an integer between `0` and `u64::MAX`.
     ///
-    /// For any Value on which `is_u64` returns true, [`as_u64`] is guaranteed to return
-    /// the integer value.
+    /// For any Value on which `is_u64` returns true, [`as_u64`] is guaranteed
+    /// to return the integer value.
     ///
     /// # Example
     ///
@@ -561,7 +564,8 @@ impl Value {
     }
 }
 
-/// Returns the `Value::Null`. This allows for better composition with `Option` types.
+/// Returns the `Value::Null`. This allows for better composition with `Option`
+/// types.
 ///
 /// # Example
 ///

@@ -14,7 +14,8 @@ mod builder;
 mod resource;
 
 mod sealed {
-    /// Private trait used to prevent marker traits from being implemented downstream.
+    /// Private trait used to prevent marker traits from being implemented
+    /// downstream.
     pub trait Sealed {}
 }
 
