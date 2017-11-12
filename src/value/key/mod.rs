@@ -87,21 +87,18 @@ impl FromStr for Key {
         let mut dest = String::with_capacity(source.len() + 10);
         let mut chars = source.chars().peekable();
 
-        #[cfg_attr(rustfmt, rustfmt_skip)]
         match chars.next() {
-            Some(value @ '\u{002d}') |
-            Some(value @ '\u{005f}') |
-            Some(value @ '\u{0020}') => {
+            Some(value @ '_') | Some(value @ '-') | Some(value @ ' ') => {
                 bail!("cannot start with '{}'", value);
-            }
-            None => {
-                bail!("cannot be blank");
             }
             Some(value @ 'A'...'Z') => {
                 dest.push(as_lowercase(value));
             }
             Some(value) => {
                 dest.push(value);
+            }
+            None => {
+                bail!("cannot be blank");
             }
         }
 
