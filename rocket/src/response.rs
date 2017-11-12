@@ -50,7 +50,7 @@ impl<T: Resource> Responder<'static> for Collection<T> {
             .map(Resource::object)
             .collect::<Result<Vec<_>, _>>()
             .map(Data::Collection)
-            .and_then(|data| Document::build().data(data).finalize())
+            .and_then(|data| Document::builder().data(data).build())
             .map_err(|_| Status::InternalServerError)
             .and_then(with_body)
             .map(|mut resp| {
@@ -89,7 +89,7 @@ impl<T: Resource> DerefMut for Created<T> {
 impl<T: Resource> Responder<'static> for Created<T> {
     fn respond_to(self, _request: &Request) -> Result<Response<'static>, Status> {
         self.object()
-            .and_then(|obj| Document::build().data(obj).finalize())
+            .and_then(|obj| Document::builder().data(obj).build())
             .map_err(|_| Status::InternalServerError)
             .and_then(with_body)
             .map(|mut resp| {
@@ -128,7 +128,7 @@ impl<T: Resource> DerefMut for Member<T> {
 impl<T: Resource> Responder<'static> for Member<T> {
     fn respond_to(self, _request: &Request) -> Result<Response<'static>, Status> {
         self.object()
-            .and_then(|obj| Document::build().data(obj).finalize())
+            .and_then(|obj| Document::builder().data(obj).build())
             .map_err(|_| Status::InternalServerError)
             .and_then(with_body)
             .map(|mut resp| {
