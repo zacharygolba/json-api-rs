@@ -1,4 +1,4 @@
-//! Spec-compliant member names and field paths.
+//! Member names and field paths.
 
 mod path;
 
@@ -14,7 +14,7 @@ use error::Error;
 
 pub use self::path::Path;
 
-/// A wrapper around `String` that enforces compliance with spec-compliant member names.
+/// Represents a single member name.
 ///
 /// # Example
 ///

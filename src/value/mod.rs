@@ -19,6 +19,7 @@ pub use serde_json::value::Number;
 
 pub use self::collections::{Map, Set};
 pub use self::convert::{from_value, to_value};
+#[doc(no_inline)]
 pub use self::fields::{Key, Path};
 
 /// Represents any valid JSON API value.
