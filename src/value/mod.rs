@@ -23,7 +23,7 @@ pub use self::fields::{Key, Path};
 
 /// Represents any valid JSON API value.
 ///
-/// Like [`serde_json::Value`], but with spec compliance baked into the type system.
+/// Like [`serde_json::Value`], but with spec-compliance baked into the type system.
 ///
 /// [`serde_json::Value`]: https://docs.serde.rs/serde_json/enum.Value.html
 #[derive(Clone, Debug, PartialEq)]
