@@ -3,6 +3,7 @@
 //! The types in this module are commonly used as the underlying data structure of
 //! arbitrary objects found in JSON API data.
 
+use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::ops::RangeFull;
@@ -15,7 +16,7 @@ use value::{Key, Value};
 use value::collections::Equivalent;
 
 /// A hash map implementation with consistent ordering.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Map<K = Key, V = Value>
 where
     K: Eq + Hash,
@@ -448,6 +449,16 @@ where
     pub fn values_mut(&mut self) -> ValuesMut<K, V> {
         let iter = self.inner.values_mut();
         ValuesMut { iter }
+    }
+}
+
+impl<K, V> Debug for Map<K, V>
+where
+    K: Debug + Eq + Hash,
+    V: Debug,
+{
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.debug_map().entries(self).finish()
     }
 }
 

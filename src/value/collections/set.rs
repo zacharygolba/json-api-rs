@@ -1,6 +1,6 @@
 //! A hash set implemented as a `Map` where the value is `()`.
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -15,7 +15,7 @@ use value::collections::Equivalent;
 use value::collections::map::{self, Keys, Map};
 
 /// A hash set implemented as a `Map` where the value is `()`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Set<T: Eq + Hash = Key> {
     inner: Map<T, ()>,
 }
@@ -306,6 +306,12 @@ impl<T: Eq + Hash> Set<T> {
     /// [`ordermap`]: https://docs.rs/ordermap
     pub fn reserve(&mut self, additional: usize) {
         self.inner.reserve(additional)
+    }
+}
+
+impl<T: Debug + Eq + Hash> Debug for Set<T> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.debug_set().entries(self).finish()
     }
 }
 
