@@ -165,7 +165,10 @@ mod serde_status {
         deserializer.deserialize_option(StatusVisitor)
     }
 
-    pub fn serialize<S>(value: &Option<StatusCode>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(
+        value: &Option<StatusCode>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {

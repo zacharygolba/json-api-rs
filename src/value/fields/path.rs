@@ -194,7 +194,9 @@ impl Path {
         self.0.reserve(additional);
     }
 
-    /// Reserves the minimum capacity for exactly `additional` more keys to be inserted.
+    /// Reserves the minimum capacity for exactly `additional` more keys to be
+    /// inserted.
+    ///
     /// Does nothing if the capacity is already sufficient.
     ///
     /// # Panics

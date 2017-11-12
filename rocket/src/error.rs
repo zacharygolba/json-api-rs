@@ -6,7 +6,10 @@ use response;
 
 macro_rules! catchers {
     ({ $($status:expr => $name:ident),* }) => {
-        $(pub fn $name(_: RocketError, _req: &Request) -> Result<Response<'static>, Status> {
+        $(pub fn $name(
+            _: RocketError,
+            _req: &Request,
+        ) -> Result<Response<'static>, Status> {
             let code = $status.as_u16();
             let reason = $status
                 .canonical_reason()
