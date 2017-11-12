@@ -1,3 +1,5 @@
+//! Spec-compliant member names and field paths.
+
 mod path;
 
 use std::borrow::Borrow;
@@ -12,7 +14,7 @@ use error::Error;
 
 pub use self::path::Path;
 
-/// A wrapper around `String` that enforces compliance with JSON API member names.
+/// A wrapper around `String` that enforces compliance with spec-compliant member names.
 ///
 /// # Example
 ///

@@ -7,12 +7,12 @@ use std::marker::PhantomData;
 use std::ops::RangeFull;
 use std::str::FromStr;
 
-use ordermap::Equivalent;
 use serde::de::{Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
 use value::Key;
-use value::map::{self, Keys, Map};
+use value::collections::Equivalent;
+use value::collections::map::{self, Keys, Map};
 
 /// A hash set implemented as a `Map` where the value is `()`.
 #[derive(Clone, Debug, Eq, PartialEq)]

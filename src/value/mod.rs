@@ -1,26 +1,25 @@
 //! Provides types that can be used to represent valid JSON API data.
 
-mod key;
+mod convert;
 
-pub mod map;
-pub mod set;
+pub mod collections;
+pub mod fields;
 
 use std::cmp::PartialEq;
 use std::fmt::{self, Formatter};
 use std::iter::FromIterator;
 use std::str::FromStr;
 
-use serde::de::{Deserialize, DeserializeOwned, Deserializer, Visitor};
+use serde::de::{Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
-use serde_json::{self, Value as JsonValue};
 
 use error::Error;
 
 pub use serde_json::value::Number;
 
-pub use self::key::*;
-pub use self::map::Map;
-pub use self::set::Set;
+pub use self::collections::{Map, Set};
+pub use self::convert::{from_value, to_value};
+pub use self::fields::{Key, Path};
 
 /// Represents any valid JSON API value.
 ///
@@ -37,10 +36,8 @@ pub enum Value {
     Bool(bool),
     /// Represents both integers and floating point values.
     Number(Number),
-    /// Represents a JSON object as a hash table with consistent order. Keys are guarenteed
-    /// to be a valid JSON API [member name].
-    ///
-    /// [member name]: http://jsonapi.org/format/#document-member-names
+    /// Represents a JSON object as a hash table with consistent order. Keys are
+    /// guarenteed to be a valid member name.
     Object(Map),
     /// Represents a JSON string.
     String(String),
@@ -726,7 +723,7 @@ impl FromStr for Value {
     type Err = Error;
 
     fn from_str(src: &str) -> Result<Self, Self::Err> {
-        from_json(src.parse()?)
+        convert::from_json(src.parse()?)
     }
 }
 
@@ -916,52 +913,5 @@ impl Serialize for Value {
             Value::Object(ref value) => value.serialize(serializer),
             Value::String(ref value) => serializer.serialize_str(value),
         }
-    }
-}
-
-/// Interpret a JSON API value as an instance of type `T`.
-pub fn to_value<T>(value: T) -> Result<Value, Error>
-where
-    T: Serialize,
-{
-    from_json(serde_json::to_value(value)?)
-}
-
-/// Convert a `T` into a JSON API value.
-pub fn from_value<T>(value: Value) -> Result<T, Error>
-where
-    T: DeserializeOwned,
-{
-    Ok(T::deserialize(to_json(value))?)
-}
-
-fn to_json(value: Value) -> JsonValue {
-    match value {
-        Value::Null => JsonValue::Null,
-        Value::Array(inner) => inner.into_iter().map(to_json).collect(),
-        Value::Bool(inner) => JsonValue::Bool(inner),
-        Value::Number(inner) => JsonValue::Number(inner),
-        Value::Object(inner) => {
-            let map = inner
-                .into_iter()
-                .map(|(k, v)| (String::from(k), to_json(v)))
-                .collect();
-
-            JsonValue::Object(map)
-        }
-        Value::String(inner) => JsonValue::String(inner),
-    }
-}
-
-fn from_json(value: JsonValue) -> Result<Value, Error> {
-    match value {
-        JsonValue::Null => Ok(Value::Null),
-        JsonValue::Array(data) => data.into_iter().map(from_json).collect(),
-        JsonValue::Bool(data) => Ok(Value::Bool(data)),
-        JsonValue::Number(data) => Ok(Value::Number(data)),
-        JsonValue::Object(data) => data.into_iter()
-            .map(|(k, v)| Ok((k.parse()?, from_json(v)?)))
-            .collect(),
-        JsonValue::String(data) => Ok(Value::String(data)),
     }
 }

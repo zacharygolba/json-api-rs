@@ -10,11 +10,10 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use value::Key;
 
-/// A sequence of `.` seperated JSON API [member names].
+/// Represent a dot-separated list of member names.
 ///
-/// Commonly used in query params that accept a [relationship path].
+/// See also: [relationship path].
 ///
-/// [member names]: http://jsonapi.org/format/#document-member-names
 /// [relationship path]: http://jsonapi.org/format/#fetching-includes
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Path(Vec<Key>);

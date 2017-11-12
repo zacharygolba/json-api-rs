@@ -7,11 +7,12 @@ use std::hash::Hash;
 use std::iter::FromIterator;
 use std::ops::RangeFull;
 
-use ordermap::{self, Equivalent, OrderMap};
+use ordermap::{self, OrderMap};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
 use value::{Key, Value};
+use value::collections::Equivalent;
 
 /// A hash map implementation with consistent ordering.
 #[derive(Clone, Debug, Eq, PartialEq)]
