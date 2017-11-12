@@ -1,6 +1,7 @@
 use builder;
 use doc::Link;
-use value::{Key, Map, StatusCode, Value};
+use http::StatusCode;
+use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Error {
@@ -13,7 +14,7 @@ pub struct Error {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<Source>,
     #[serde(skip_serializing_if = "Option::is_none", with = "serde_status")]
@@ -130,7 +131,7 @@ mod serde_status {
     use serde::de::{Deserializer, Error, Visitor};
     use serde::ser::Serializer;
 
-    use value::StatusCode;
+    use http::StatusCode;
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<StatusCode>, D::Error>
     where

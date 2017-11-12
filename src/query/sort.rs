@@ -222,7 +222,7 @@ impl Neg for Direction {
 #[cfg(test)]
 mod tests {
     use super::{Direction, Sort};
-    use value::key::Path;
+    use value::Path;
 
     #[test]
     fn direction_is_asc() {

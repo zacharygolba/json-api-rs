@@ -7,8 +7,7 @@ use serde_qs;
 use self::sort::Direction;
 use builder;
 use error::Error;
-use value::{Map, Set, Value};
-use value::key::{Key, Path};
+use value::{Key, Map, Path, Set, Value};
 
 pub use self::page::Page;
 pub use self::sort::Sort;
@@ -16,7 +15,7 @@ pub use self::sort::Sort;
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct Query {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub fields: Map<Key, Set<Key>>,
+    pub fields: Map<Key, Set>,
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub filter: Map<Path, Value>,
     #[serde(default, skip_serializing_if = "Set::is_empty")]

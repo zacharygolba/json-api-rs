@@ -6,12 +6,12 @@ use serde::ser::{Serialize, Serializer};
 
 use builder;
 use error::Error;
-use value::{Key, Map, Value};
+use value::{Map, Value};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct JsonApi {
     #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map<Key, Value>,
+    pub meta: Map,
     pub version: Version,
     /// Private field for backwards compatibility.
     #[serde(skip)]

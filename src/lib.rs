@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate error_chain;
-extern crate http;
 extern crate ordermap;
 extern crate percent_encoding;
 extern crate serde;
@@ -8,6 +7,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_qs;
+
+pub extern crate http;
 
 mod builder;
 mod resource;
