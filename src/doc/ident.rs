@@ -1,5 +1,10 @@
+use std::cmp::PartialEq;
+use std::mem;
+
 use builder;
+use doc::{Data, Document, IntoDocument, Object, PrimaryData};
 use error::Error;
+use sealed::Sealed;
 use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -19,6 +24,39 @@ impl Identifier {
         Default::default()
     }
 }
+
+impl IntoDocument<Identifier> for Identifier {
+    fn to_doc(mut self) -> Result<Document<Identifier>, Error> {
+        let meta = mem::replace(&mut self.meta, Default::default());
+        let mut doc = Document::new(Data::Member(Box::new(Some(self))));
+
+        doc.meta = meta;
+        Ok(doc)
+    }
+}
+
+impl PartialEq<Object> for Identifier {
+    fn eq(&self, rhs: &Object) -> bool {
+        self.id == rhs.id && self.kind == rhs.kind
+    }
+}
+
+impl<'a> PartialEq<&'a Object> for Identifier {
+    fn eq(&self, rhs: &&'a Object) -> bool {
+        *self == **rhs
+    }
+}
+
+impl PrimaryData for Identifier {
+    fn flatten(self, incl: &[Object]) -> Value {
+        incl.into_iter()
+            .find(|item| self == *item)
+            .map(|item| item.clone().flatten(incl))
+            .unwrap_or_default()
+    }
+}
+
+impl Sealed for Identifier {}
 
 #[derive(Debug, Default)]
 pub struct IdentifierBuilder {

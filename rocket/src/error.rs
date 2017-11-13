@@ -24,7 +24,7 @@ macro_rules! catchers {
                 e.title(&reason);
             }
 
-            ::json_api::ErrorDocument::builder()
+            ::json_api::doc::ErrorDocument::builder()
                 .error(e.build().map_err(|_| Status::InternalServerError)?)
                 .build()
                 .map_err(|_| Status::InternalServerError)

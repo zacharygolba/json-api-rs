@@ -1,6 +1,6 @@
 //! Provides types that can be used to represent valid JSON API data.
 
-mod convert;
+pub(crate) mod convert;
 
 pub mod collections;
 pub mod fields;

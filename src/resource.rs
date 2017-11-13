@@ -1,9 +1,45 @@
-use doc::{Identifier, Object};
+use doc::{Data, Document, Identifier, IntoDocument, Object};
 use error::Error;
 
 pub trait Resource: Sized {
     fn ident(&self) -> Result<Identifier, Error>;
     fn object(&self) -> Result<Object, Error>;
+}
+
+impl<'a, T: Resource> IntoDocument<Identifier> for &'a T {
+    fn to_doc(self) -> Result<Document<Identifier>, Error> {
+        self.ident()?.to_doc()
+    }
+}
+
+impl<'a, T: Resource> IntoDocument<Identifier> for &'a [T] {
+    fn to_doc(self) -> Result<Document<Identifier>, Error> {
+        let mut data = Vec::with_capacity(self.len());
+
+        for item in self {
+            data.push(item.ident()?);
+        }
+
+        Ok(Document::new(Data::Collection(data)))
+    }
+}
+
+impl<'a, T: Resource> IntoDocument<Object> for &'a T {
+    fn to_doc(self) -> Result<Document<Object>, Error> {
+        self.object()?.to_doc()
+    }
+}
+
+impl<'a, T: Resource> IntoDocument<Object> for &'a [T] {
+    fn to_doc(self) -> Result<Document<Object>, Error> {
+        let mut data = Vec::with_capacity(self.len());
+
+        for item in self {
+            data.push(item.object()?);
+        }
+
+        Ok(Document::new(Data::Collection(data)))
+    }
 }
 
 #[macro_export]

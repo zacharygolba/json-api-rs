@@ -1,6 +1,9 @@
+use std::mem;
+
 use builder;
-use doc::{Link, Relationship};
+use doc::{Data, Document, Identifier, IntoDocument, Link, PrimaryData, Relationship};
 use error::Error;
+use sealed::Sealed;
 use value::{Key, Map, Value};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -26,6 +29,61 @@ impl Object {
         Default::default()
     }
 }
+
+impl IntoDocument<Identifier> for Object {
+    fn to_doc(self) -> Result<Document<Identifier>, Error> {
+        let mut data = Identifier::builder().id(&self.id).kind(&self.kind).build()?;
+
+        data.meta.extend(self.meta);
+        data.to_doc()
+    }
+}
+
+impl IntoDocument<Object> for Object {
+    fn to_doc(mut self) -> Result<Document<Object>, Error> {
+        let links = mem::replace(&mut self.links, Default::default());
+        let meta = mem::replace(&mut self.meta, Default::default());
+
+        let mut doc = Document::new(Data::Member(Box::new(Some(self))));
+        doc.links = links;
+        doc.meta = meta;
+
+        Ok(doc)
+    }
+}
+
+impl PrimaryData for Object {
+    fn flatten(self, incl: &[Object]) -> Value {
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        let Object { id, attributes, relationships, .. } = self;
+        let mut map = {
+            let size = attributes.len() + relationships.len() + 1;
+            Map::with_capacity(size)
+        };
+
+        map.insert(Key::from_raw("id".to_owned()), Value::String(id));
+        map.extend(attributes);
+
+        for (key, value) in relationships {
+            let value = match value.data {
+                Data::Member(data) => match *data {
+                    Some(item) => item.flatten(incl),
+                    None => Value::Null,
+                },
+                Data::Collection(data) => {
+                    let iter = data.into_iter().map(|item| item.flatten(incl));
+                    Value::Array(iter.collect())
+                }
+            };
+
+            map.insert(key, value);
+        }
+
+        Value::Object(map)
+    }
+}
+
+impl Sealed for Object {}
 
 #[derive(Debug, Default)]
 pub struct ObjectBuilder {
@@ -99,3 +157,56 @@ impl ObjectBuilder {
         self
     }
 }
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct NewObject {
+    #[serde(default, skip_serializing_if = "Map::is_empty")]
+    pub attributes: Map,
+    pub id: Option<String>,
+    #[serde(rename = "type")]
+    pub kind: Key,
+    #[serde(default, skip_serializing_if = "Map::is_empty")]
+    pub links: Map<Key, Link>,
+    #[serde(default, skip_serializing_if = "Map::is_empty")]
+    pub meta: Map,
+    #[serde(default, skip_serializing_if = "Map::is_empty")]
+    pub relationships: Map<Key, Relationship>,
+    /// Private field for backwards compatibility.
+    #[serde(skip)]
+    _ext: (),
+}
+
+impl PrimaryData for NewObject {
+    fn flatten(self, _: &[Object]) -> Value {
+        #[cfg_attr(rustfmt, rustfmt_skip)]
+        let NewObject { id, attributes, relationships, .. } = self;
+        let mut map = {
+            let size = attributes.len() + relationships.len() + 1;
+            Map::with_capacity(size)
+        };
+
+        if let Some(value) = id {
+            map.insert(Key::from_raw("id".to_owned()), Value::String(value));
+        }
+
+        map.extend(attributes);
+
+        for (key, value) in relationships {
+            let value = match value.data {
+                Data::Member(data) => match *data {
+                    Some(Identifier { id, .. }) => Value::String(id),
+                    None => Value::Null,
+                },
+                Data::Collection(data) => {
+                    data.into_iter().map(|ident| ident.id).collect()
+                }
+            };
+
+            map.insert(key, value);
+        }
+
+        Value::Object(map)
+    }
+}
+
+impl Sealed for NewObject {}

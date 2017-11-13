@@ -43,6 +43,13 @@ pub use self::path::Path;
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Key(String);
 
+impl Key {
+    #[inline]
+    pub(crate) fn from_raw(value: String) -> Self {
+        Key(value)
+    }
+}
+
 impl AsRef<[u8]> for Key {
     fn as_ref(&self) -> &[u8] {
         self.as_bytes()

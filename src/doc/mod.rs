@@ -1,3 +1,5 @@
+mod convert;
+
 pub mod error;
 pub mod ident;
 pub mod link;
@@ -7,12 +9,14 @@ pub mod specification;
 
 use std::iter::FromIterator;
 
+use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use builder;
 use sealed::Sealed;
 use value::{Key, Map, Value};
 
+pub use self::convert::*;
 pub use self::error::Error;
 pub use self::ident::Identifier;
 pub use self::link::Link;
@@ -22,7 +26,13 @@ pub use self::specification::JsonApi;
 #[doc(inline)]
 pub use self::specification::Version;
 
+pub trait PrimaryData: DeserializeOwned + Sealed + Serialize {
+    #[doc(hidden)]
+    fn flatten(self, &[Object]) -> Value;
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(bound = "T: PrimaryData")]
 pub struct Document<T: PrimaryData> {
     pub data: Data<T>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -36,6 +46,19 @@ pub struct Document<T: PrimaryData> {
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
+}
+
+impl<T: PrimaryData> Document<T> {
+    pub(crate) fn new(data: Data<T>) -> Self {
+        Document {
+            data,
+            included: Default::default(),
+            jsonapi: Default::default(),
+            links: Default::default(),
+            meta: Default::default(),
+            _ext: (),
+        }
+    }
 }
 
 impl<T: PrimaryData> Document<T> {
@@ -182,7 +205,7 @@ impl ErrorDocumentBuilder {
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(untagged)]
+#[serde(bound = "T: PrimaryData", untagged)]
 pub enum Data<T: PrimaryData> {
     Collection(Vec<T>),
     Member(Box<Option<T>>),
@@ -208,11 +231,3 @@ impl<T: PrimaryData> FromIterator<T> for Data<T> {
         Data::Collection(Vec::from_iter(iter))
     }
 }
-
-pub trait PrimaryData: Sealed + Serialize {}
-
-impl Sealed for Identifier {}
-impl PrimaryData for Identifier {}
-
-impl Sealed for Object {}
-impl PrimaryData for Object {}
