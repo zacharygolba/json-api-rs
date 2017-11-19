@@ -1,62 +1,102 @@
-use builder;
-use doc::{Data, Identifier, Link};
-use error::Error;
-use value::{Key, Map, Value};
+use std::iter::FromIterator;
 
+use doc::{Data, Identifier, Link};
+use value::{Key, Map};
+
+/// Represents a resource's relationship to another.
+///
+/// For more information, check out the *[relationships]* section of the JSON API
+/// specification.
+///
+/// [relationships]: https://goo.gl/ZQw9Xr
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Relationship {
+    /// Contains resource linkage. For more information, checkout the
+    /// *[resource linkage]* section of the JSON API specification.
+    ///
+    /// [resource linkage]: https://goo.gl/evZF8m
     pub data: Data<Identifier>,
+
+    /// Contains relevant links. If this value of this field is empty, it will not be
+    /// serialized. For more information, check out the *[links]* section of the JSON
+    /// API specification.
+    ///
+    /// [links]: https://goo.gl/E4E6Vt
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
+
+    /// Non-standard meta information. If this value of this field is empty, it will not
+    /// be serialized. For more information, check out the *[meta information]* section
+    /// of the JSON API specification.
+    ///
+    /// [meta information]: https://goo.gl/LyrGF8
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub meta: Map,
+
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
 }
 
 impl Relationship {
-    pub fn builder() -> RelationshipBuilder {
-        Default::default()
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct RelationshipBuilder {
-    data: Option<Data<Identifier>>,
-    links: Vec<(String, Link)>,
-    meta: Vec<(String, Value)>,
-}
-
-impl RelationshipBuilder {
-    pub fn build(&mut self) -> Result<Relationship, Error> {
-        Ok(Relationship {
-            data: builder::required("data", &mut self.data)?,
-            links: builder::iter(&mut self.links, builder::parse_key)?,
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
+    /// Returns a new `Relationship`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// use json_api::doc::{Data, Identifier, Relationship};
+    ///
+    /// let ident = Identifier::new("users".parse()?, "1".to_owned());
+    /// let data = Data::Member(Box::new(Some(ident)));
+    /// let mut relationship = Relationship::new(data);
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// # example().unwrap();
+    /// # }
+    /// ```
+    pub fn new(data: Data<Identifier>) -> Self {
+        Relationship {
+            data,
+            links: Default::default(),
+            meta: Default::default(),
             _ext: (),
-        })
+        }
     }
+}
 
-    pub fn data(&mut self, value: Data<Identifier>) -> &mut Self {
-        self.data = Some(value);
-        self
+impl From<Option<Identifier>> for Relationship {
+    fn from(value: Option<Identifier>) -> Self {
+        let data = Data::Member(Box::new(value));
+        Relationship::new(data)
     }
+}
 
-    pub fn link<K>(&mut self, key: K, value: Link) -> &mut Self
+impl From<Vec<Identifier>> for Relationship {
+    fn from(value: Vec<Identifier>) -> Self {
+        let data = Data::Collection(value);
+        Relationship::new(data)
+    }
+}
+
+impl From<Identifier> for Relationship {
+    fn from(value: Identifier) -> Self {
+        Relationship::from(Some(value))
+    }
+}
+
+impl FromIterator<Identifier> for Relationship {
+    fn from_iter<I>(iter: I) -> Self
     where
-        K: AsRef<str>,
+        I: IntoIterator<Item = Identifier>,
     {
-        self.links.push((key.as_ref().to_owned(), value));
-        self
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
+        let data = Data::from_iter(iter);
+        Relationship::new(data)
     }
 }

@@ -1,3 +1,5 @@
+//! Idiomatic types for building a robust JSON API.
+
 #[macro_use]
 extern crate error_chain;
 extern crate ordermap;
@@ -10,7 +12,6 @@ extern crate serde_qs;
 
 pub extern crate http;
 
-mod builder;
 mod resource;
 
 mod sealed {
@@ -23,6 +24,7 @@ pub mod doc;
 pub mod error;
 pub mod query;
 pub mod value;
+pub mod view;
 
 #[doc(inline)]
 pub use doc::{from_doc, from_reader, from_slice, from_str};
@@ -31,6 +33,7 @@ pub use doc::{to_doc, to_string, to_string_pretty, to_vec, to_vec_pretty, to_wri
               to_writer_pretty};
 #[doc(inline)]
 pub use doc::Document;
+#[doc(inline)]
 pub use error::Error;
 pub use resource::Resource;
 #[doc(inline)]

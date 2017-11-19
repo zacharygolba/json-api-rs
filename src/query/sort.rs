@@ -7,16 +7,24 @@ use serde::ser::{Serialize, Serializer};
 
 use error::Error;
 use query::Path;
+use sealed::Sealed;
+use value::Stringify;
 
+/// A single sort instruction containing a direction and field path.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Sort {
+    /// The direction to sort by.
     pub direction: Direction,
+
+    /// The name of the field to sort by.
     pub field: Path,
+
     /// Private field for backwards compatibility.
     _ext: (),
 }
 
 impl Sort {
+    /// Returns a new `Sort`.
     pub fn new(field: Path, direction: Direction) -> Self {
         Sort {
             direction,
@@ -33,9 +41,10 @@ impl Sort {
     /// # extern crate json_api;
     /// #
     /// # use json_api::Error;
-    /// # use json_api::query::sort::{Direction, Sort};
     /// #
     /// # fn example() -> Result<(), Error> {
+    /// use json_api::query::{Direction, Sort};
+    ///
     /// let chrono = Sort::new("created-at".parse()?, Direction::Asc);
     /// let latest = chrono.reverse();
     ///
@@ -57,11 +66,7 @@ impl Sort {
 
 impl Display for Sort {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        if self.direction == Direction::Desc {
-            Display::fmt("-", f)?;
-        }
-
-        Display::fmt(&self.field, f)
+        f.write_str(&self.stringify())
     }
 }
 
@@ -83,11 +88,7 @@ impl Neg for Sort {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Sort {
-            direction: -self.direction,
-            field: self.field,
-            _ext: (),
-        }
+        Sort::new(self.field, -self.direction)
     }
 }
 
@@ -122,20 +123,33 @@ impl Serialize for Sort {
     where
         S: Serializer,
     {
-        let mut value = String::with_capacity(self.field.len() + 1);
-
-        if self.direction == Direction::Desc {
-            value.push('-');
-        }
-
-        value.push_str(&self.field.to_string());
-        value.serialize(serializer)
+        self.stringify().serialize(serializer)
     }
 }
 
+impl Sealed for Sort {}
+
+impl Stringify for Sort {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut field = self.field.to_bytes();
+        let mut bytes = Vec::with_capacity(field.len() + 1);
+
+        if self.direction.is_desc() {
+            bytes.push(b'-');
+        }
+
+        bytes.append(&mut field);
+        bytes
+    }
+}
+
+/// The direction of a sort instruction.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Direction {
+    /// Ascending
     Asc,
+
+    /// Descending
     Desc,
 }
 
@@ -147,9 +161,9 @@ impl Direction {
     /// ```
     /// # extern crate json_api;
     /// #
-    /// # use json_api::query::sort::Direction;
-    /// #
     /// # fn main() {
+    /// use json_api::query::Direction;
+    ///
     /// let direction = Direction::Desc;
     /// assert_eq!(direction.is_asc(), false);
     ///
@@ -170,9 +184,9 @@ impl Direction {
     /// ```
     /// # extern crate json_api;
     /// #
-    /// # use json_api::query::sort::Direction;
-    /// #
     /// # fn main() {
+    /// use json_api::query::Direction;
+    ///
     /// let direction = Direction::Asc;
     /// assert_eq!(direction.is_desc(), false);
     ///
@@ -193,9 +207,9 @@ impl Direction {
     /// ```
     /// # extern crate json_api;
     /// #
-    /// # use json_api::query::sort::Direction;
-    /// #
     /// # fn main() {
+    /// use json_api::query::Direction;
+    ///
     /// let asc = Direction::Asc;
     /// let desc = Direction::Desc;
     ///

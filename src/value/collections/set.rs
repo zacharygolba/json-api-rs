@@ -1,16 +1,18 @@
 //! A hash set implemented as a `Map` where the value is `()`.
 
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
 use std::ops::RangeFull;
 use std::str::FromStr;
 
-use serde::de::{Deserialize, Deserializer, Visitor};
-use serde::ser::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 
-use value::Key;
+use error::Error;
+use sealed::Sealed;
+use value::{Key, Stringify};
 use value::collections::Equivalent;
 use value::collections::map::{self, Keys, Map};
 
@@ -324,23 +326,7 @@ impl<T: Eq + Hash> Default for Set<T> {
     }
 }
 
-impl<T: Display + Eq + Hash> Display for Set<T> {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let sep = ',';
-
-        for (idx, key) in self.iter().enumerate() {
-            if idx > 0 {
-                Display::fmt(&sep, f)?;
-            }
-
-            Display::fmt(key, f)?;
-        }
-
-        Ok(())
-    }
-}
-
-impl<T: Eq + FromStr + Hash> Extend<T> for Set<T> {
+impl<T: Eq + Hash> Extend<T> for Set<T> {
     fn extend<I>(&mut self, iter: I)
     where
         I: IntoIterator<Item = T>,
@@ -350,13 +336,35 @@ impl<T: Eq + FromStr + Hash> Extend<T> for Set<T> {
     }
 }
 
-impl<T: Eq + FromStr + Hash> FromIterator<T> for Set<T> {
+impl<T: Eq + Hash> FromIterator<T> for Set<T> {
     fn from_iter<I>(iter: I) -> Self
     where
         I: IntoIterator<Item = T>,
     {
         let inner = iter.into_iter().map(|key| (key, ())).collect();
         Set { inner }
+    }
+}
+
+impl<T, E> FromStr for Set<T>
+where
+    T: Eq + FromStr<Err = E> + Hash,
+    E: Into<Error>,
+{
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let iter = value.split(',');
+        let mut set = match iter.size_hint() {
+            (_, Some(size)) => Set::with_capacity(size),
+            (_, None) => Set::new(),
+        };
+
+        for item in iter {
+            set.insert(item.parse().map_err(Into::into)?);
+        }
+
+        Ok(set)
     }
 }
 
@@ -379,43 +387,33 @@ impl<'a, T: Eq + Hash> IntoIterator for &'a Set<T> {
     }
 }
 
-impl<'de, T, E> Deserialize<'de> for Set<T>
+impl<'de, T> Deserialize<'de> for Set<T>
 where
-    E: Display + 'de,
-    T: Deserialize<'de> + Eq + FromStr<Err = E> + Hash + 'de,
+    T: Deserialize<'de> + Eq + Hash + 'de,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error;
-
-        struct SetVisitor<'de, T, D>
+        struct SetVisitor<'de, T>
         where
-            D: Display + 'de,
-            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash + 'de,
+            T: Deserialize<'de> + Eq + Hash + 'de,
         {
-            err: PhantomData<&'de D>,
-            key: PhantomData<&'de T>,
+            data: PhantomData<&'de T>,
         }
 
-        impl<'de, T, D> SetVisitor<'de, T, D>
+        impl<'de, T> SetVisitor<'de, T>
         where
-            D: Display,
-            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash,
+            T: Deserialize<'de> + Eq + Hash + 'de,
         {
             fn new() -> Self {
-                SetVisitor {
-                    err: PhantomData,
-                    key: PhantomData,
-                }
+                SetVisitor { data: PhantomData }
             }
         }
 
-        impl<'de, T, D> Visitor<'de> for SetVisitor<'de, T, D>
+        impl<'de, T> Visitor<'de> for SetVisitor<'de, T>
         where
-            D: Display,
-            T: Deserialize<'de> + Eq + FromStr<Err = D> + Hash,
+            T: Deserialize<'de> + Eq + Hash + 'de,
         {
             type Value = Set<T>;
 
@@ -423,10 +421,20 @@ where
                 f.write_str("a sequence of json api member names")
             }
 
-            fn visit_str<E: Error>(self, data: &str) -> Result<Self::Value, E> {
-                data.split(',')
-                    .map(|item| item.trim().parse().map_err(Error::custom))
-                    .collect()
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut set = match seq.size_hint() {
+                    Some(size) => Set::with_capacity(size),
+                    None => Set::new(),
+                };
+
+                while let Some(value) = seq.next_element()? {
+                    set.insert(value);
+                }
+
+                Ok(set)
             }
         }
 
@@ -434,12 +442,36 @@ where
     }
 }
 
-impl<T: Display + Eq + Hash> Serialize for Set<T> {
+impl<T: Eq + Hash + Serialize> Serialize for Set<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.to_string())
+        let mut state = serializer.serialize_seq(Some(self.len()))?;
+
+        for value in self {
+            state.serialize_element(value)?;
+        }
+
+        state.end()
+    }
+}
+
+impl<T: Eq + Hash + Sealed> Sealed for Set<T> {}
+
+impl<T: Eq + Hash + Stringify> Stringify for Set<T> {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+
+        for value in self {
+            if !bytes.is_empty() {
+                bytes.push(b',');
+            }
+
+            bytes.append(&mut value.to_bytes());
+        }
+
+        bytes
     }
 }
 

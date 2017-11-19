@@ -3,8 +3,7 @@ extern crate json_api;
 extern crate ordermap;
 
 use json_api::Error;
-use json_api::query::{self, Query};
-use json_api::query::sort::Direction;
+use json_api::query::{self, Direction, Query};
 use ordermap::OrderMap;
 
 type Mapping = OrderMap<&'static str, Query>;

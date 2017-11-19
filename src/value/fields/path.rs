@@ -1,5 +1,6 @@
+use std::borrow::Borrow;
 use std::fmt::{self, Display, Formatter};
-use std::iter::FromIterator;
+use std::iter::{Extend, FromIterator};
 use std::ops::Deref;
 use std::slice::Iter;
 use std::str::FromStr;
@@ -8,7 +9,8 @@ use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
 use error::Error;
-use value::Key;
+use sealed::Sealed;
+use value::{Key, Stringify};
 
 /// Represents a dot-separated list of member names.
 ///
@@ -250,72 +252,17 @@ impl Path {
     pub fn shrink_to_fit(&mut self) {
         self.0.shrink_to_fit();
     }
+}
 
-    /// Converts the `Path` into an owned byte vector.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # extern crate json_api;
-    /// #
-    /// # use std::str::FromStr;
-    /// #
-    /// # use json_api::Error;
-    /// # use json_api::value::Path;
-    /// #
-    /// # fn example() -> Result<(), Error> {
-    /// let path = Path::from_str("a.b.c")?;
-    /// assert_eq!(path.to_bytes(), vec![97, 46, 98, 46, 99]);
-    /// #
-    /// # Ok(())
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     example().unwrap();
-    /// # }
-    /// ```
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let bytes = match self.char_count() {
-            0 => return Default::default(),
-            len => Vec::with_capacity(len),
-        };
-
-        self.iter().fold(bytes, |mut bytes, key| {
-            if !bytes.is_empty() {
-                bytes.push(b'.');
-            }
-
-            bytes.extend_from_slice(key.as_bytes());
-            bytes
-        })
+impl AsRef<[Key]> for Path {
+    fn as_ref(&self) -> &[Key] {
+        self
     }
+}
 
-    /// Converts the `Path` into an owned string.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # extern crate json_api;
-    /// #
-    /// # use std::str::FromStr;
-    /// #
-    /// # use json_api::Error;
-    /// # use json_api::value::Path;
-    /// #
-    /// # fn example() -> Result<(), Error> {
-    /// let path = Path::from_str("a.b.c")?;
-    /// assert_eq!(path.to_string(), "a.b.c".to_owned());
-    /// #
-    /// # Ok(())
-    /// # }
-    /// #
-    /// # fn main() {
-    /// #     example().unwrap();
-    /// # }
-    /// ```
-    pub fn to_string(&self) -> String {
-        let bytes = self.to_bytes();
-        unsafe { String::from_utf8_unchecked(bytes) }
+impl Borrow<[Key]> for Path {
+    fn borrow(&self) -> &[Key] {
+        self
     }
 }
 
@@ -328,14 +275,32 @@ impl Deref for Path {
 }
 
 impl Display for Path {
-    fn fmt(&self, fmtr: &mut Formatter) -> fmt::Result {
-        fmtr.write_str(&self.to_string())
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_str(&self.stringify())
+    }
+}
+
+impl Extend<Key> for Path {
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = Key>,
+    {
+        self.0.extend(iter);
+    }
+}
+
+impl<'a> Extend<&'a Key> for Path {
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = &'a Key>,
+    {
+        self.extend(iter.into_iter().cloned());
     }
 }
 
 impl From<Path> for String {
     fn from(path: Path) -> Self {
-        path.to_string()
+        path.stringify()
     }
 }
 
@@ -436,6 +401,133 @@ impl Serialize for Path {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.to_string())
+        serializer.serialize_str(&self.stringify())
+    }
+}
+
+impl Sealed for Path {}
+
+impl Stringify for Path {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = match self.char_count() {
+            0 => return Default::default(),
+            len => Vec::with_capacity(len),
+        };
+
+        for key in self {
+            if !bytes.is_empty() {
+                bytes.push(b'.');
+            }
+
+            bytes.append(&mut key.to_bytes());
+        }
+
+        bytes
+    }
+}
+
+/// Shared behavior for types that can be combined to create a `Path`.
+pub trait Segment<T> {
+    /// Combines `self` with `other`. Returns a new `Path`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # use json_api::Error;
+    /// #
+    /// # fn example() -> Result<(), Error> {
+    /// use json_api::value::fields::{Key, Path, Segment};
+    ///
+    /// let posts = "posts".parse::<Key>()?;
+    /// let comments = "comments".parse::<Key>()?;
+    ///
+    /// let path: Path = posts.join(&comments);
+    /// assert_eq!(path, "posts.comments");
+    ///
+    /// let authors = "authors".parse::<Key>()?;
+    /// let name = "name".parse::<Key>()?;
+    ///
+    /// let path: Path = path.join(&authors.join(&name));
+    /// assert_eq!(path, "posts.comments.authors.name");
+    /// #
+    /// # Ok(())
+    /// # }
+    /// #
+    /// # fn main() {
+    /// # example().unwrap();
+    /// # }
+    /// ```
+    fn join(&self, other: T) -> Path;
+}
+
+impl Segment<Key> for Key {
+    fn join(&self, other: Key) -> Path {
+        let mut path = Path::with_capacity(2);
+
+        path.push(self.clone());
+        path.push(other);
+
+        path
+    }
+}
+
+impl<'a> Segment<&'a Key> for Key {
+    fn join(&self, other: &Key) -> Path {
+        self.join(other.clone())
+    }
+}
+
+impl<'a, T> Segment<T> for Key
+where
+    T: IntoIterator<Item = &'a Key>,
+{
+    fn join(&self, other: T) -> Path {
+        let iter = other.into_iter();
+        let mut path = match iter.size_hint() {
+            (_, Some(size)) => Path::with_capacity(size + 1),
+            _ => Path::new(),
+        };
+
+        path.push(self.clone());
+        path.extend(iter);
+
+        path
+    }
+}
+
+impl Segment<Key> for Path {
+    fn join(&self, other: Key) -> Path {
+        let mut path = Path::with_capacity(self.len() + 1);
+
+        path.extend(self);
+        path.push(other);
+
+        path
+    }
+}
+
+impl<'a> Segment<&'a Key> for Path {
+    fn join(&self, other: &Key) -> Path {
+        self.join(other.clone())
+    }
+}
+
+impl<'a, T> Segment<T> for Path
+where
+    T: IntoIterator<Item = &'a Key>,
+{
+    fn join(&self, other: T) -> Path {
+        let iter = other.into_iter();
+        let mut path = match iter.size_hint() {
+            (_, Some(size)) => Path::with_capacity(self.len() + size),
+            _ => Path::new(),
+        };
+
+        path.extend(self);
+        path.extend(iter);
+
+        path
     }
 }

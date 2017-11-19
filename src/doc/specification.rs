@@ -4,68 +4,61 @@ use std::str::FromStr;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
-use builder;
 use error::Error;
-use value::{Map, Value};
+use value::{Map, Stringify};
 
+/// Information about this implementation of the specification.
+///
+/// For more information, check out the *[JSON API object]* section of the JSON API
+/// specification.
+///
+/// [JSON API object]: https://goo.gl/hZUcEt
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct JsonApi {
+    /// Non-standard meta information. If this value of this field is empty, it will not
+    /// be included if the object is serialized. For more information, check out the
+    /// *[meta information]* section of the JSON API specification.
+    ///
+    /// [meta information]: https://goo.gl/LyrGF8
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub meta: Map,
+
+    /// The latest version of the JSON API specification that is supported by
+    /// this implementation. Defaults to the latest available version.
     pub version: Version,
+
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
 }
 
 impl JsonApi {
-    pub fn builder() -> JsonApiBuilder {
-        Default::default()
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct JsonApiBuilder {
-    meta: Vec<(String, Value)>,
-    version: Option<Version>,
-}
-
-impl JsonApiBuilder {
-    pub fn build(&mut self) -> Result<JsonApi, Error> {
-        Ok(JsonApi {
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
-            version: self.version.unwrap_or_default(),
+    /// Returns a new `JsonApi` with the specified `version`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # fn main() {
+    /// use json_api::doc::{JsonApi, Version};
+    /// assert_eq!(JsonApi::default(), JsonApi::new(Version::V1));
+    /// # }
+    /// ```
+    pub fn new(version: Version) -> Self {
+        JsonApi {
+            version,
+            meta: Default::default(),
             _ext: (),
-        })
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
-    }
-
-    pub fn version(&mut self, value: Version) -> &mut Self {
-        self.version = Some(value);
-        self
+        }
     }
 }
 
+/// The version of the specification.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Version {
     /// Version 1.0
     V1,
-}
-
-impl Version {
-    fn as_str(&self) -> &str {
-        match *self {
-            Version::V1 => "1.0",
-        }
-    }
 }
 
 impl Default for Version {
@@ -76,7 +69,9 @@ impl Default for Version {
 
 impl Display for Version {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Display::fmt(self.as_str(), f)
+        f.write_str(match *self {
+            Version::V1 => "1.0",
+        })
     }
 }
 
@@ -106,6 +101,24 @@ impl Serialize for Version {
     where
         S: Serializer,
     {
-        serializer.serialize_str(self.as_str())
+        serializer.serialize_str(match *self {
+            Version::V1 => "1.0",
+        })
+    }
+}
+
+impl Stringify for Version {
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(3);
+
+        match *self {
+            Version::V1 => {
+                bytes.push(b'1');
+                bytes.push(b'.');
+                bytes.push(b'0');
+            }
+        }
+
+        bytes
     }
 }

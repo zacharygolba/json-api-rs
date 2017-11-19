@@ -4,13 +4,6 @@
 
 Idiomatic types for building a robust [JSON API](http://jsonapi.org/).
 
-⚠️ **Warning**
-
-> This crate is under active development. Some features have yet to be implemented,
-> APIs are likely to change, and documentation is sparse.
->
-> Consider this alpha quality software until this warning is removed.
-
 ## Features
 
 ### Serialization DSL

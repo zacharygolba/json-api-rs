@@ -2,7 +2,7 @@ use serde::de::DeserializeOwned;
 use std::ops::{Deref, DerefMut};
 
 use json_api::{self, Error};
-use json_api::doc::object::{NewObject, Object};
+use json_api::doc::{NewObject, Object};
 use json_api::query::{self, Page, Query as JsonApiQuery, Sort};
 use json_api::value::{Key, Path, Value};
 use json_api::value::collections::{map, set, Set};

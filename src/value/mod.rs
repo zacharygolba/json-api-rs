@@ -1,6 +1,7 @@
-//! Provides types that can be used to represent valid JSON API data.
+//! Represent and interact with JSON API values.
 
 pub(crate) mod convert;
+mod stringify;
 
 pub mod collections;
 pub mod fields;
@@ -21,27 +22,35 @@ pub use self::collections::{Map, Set};
 pub use self::convert::{from_value, to_value};
 #[doc(no_inline)]
 pub use self::fields::{Key, Path};
+pub use self::stringify::Stringify;
 
 /// Represents any valid JSON API value.
 ///
-/// Like [`serde_json::Value`], but with spec-compliance baked into the type
+/// Like [`serde_json::Value`], but with spec compliance baked into the type
 /// system.
 ///
 /// [`serde_json::Value`]: https://docs.serde.rs/serde_json/enum.Value.html
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
-    /// Represents a null JSON value.
+    /// A null value.
     Null,
-    /// Represents an array of values.
+
+    /// An array of values.
     Array(Vec<Value>),
-    /// Represents a boolean value (true and false).
+
+    /// A boolean value.
     Bool(bool),
-    /// Represents both integers and floating point values.
+
+    /// An integer or floating point value.
     Number(Number),
-    /// Represents a JSON object as a hash table with consistent order. Keys are
-    /// guarenteed to be a valid member name.
+
+    /// A JSON object as a hash table with consistent order. Keys are
+    /// guarenteed to be a valid [member name].
+    ///
+    /// [member name]: http://jsonapi.org/format/#document-member-names
     Object(Map),
-    /// Represents a JSON string.
+
+    /// A string value.
     String(String),
 }
 

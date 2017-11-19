@@ -1,128 +1,102 @@
-use builder;
 use doc::Link;
 use http::StatusCode;
-use value::{Key, Map, Value};
+use value::{Key, Map};
 
+/// Contains information about problems encountered while performing an
+/// operation.
+///
+/// For more information, check out the *[error objects]* section of the JSON API
+/// specification.
+///
+/// [error objects]: http://jsonapi.org/format/#error-objects
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct Error {
+pub struct ErrorObject {
+    /// An application-specific error code, expressed as a string value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub code: Option<String>,
+
+    /// A human-readable explanation specific to this occurrence of the problem.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
+
+    /// A unique identifier for this particular occurrence of the problem.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+
+    /// Contains relevant links. If this value of this field is empty, it will not be
+    /// serialized. For more information, check out the *[links]* section of the JSON
+    /// API specification.
+    ///
+    /// [links]: https://goo.gl/E4E6Vt
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub links: Map<Key, Link>,
+
+    /// Non-standard meta information. If this value of this field is empty, it will not
+    /// be serialized. For more information, check out the *[meta information]* section
+    /// of the JSON API specification.
+    ///
+    /// [meta information]: https://goo.gl/LyrGF8
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub meta: Map,
+
+    /// The source of the error.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub source: Option<Source>,
+    pub source: Option<ErrorSource>,
+
+    /// The HTTP status code applicable to this problem.
     #[serde(skip_serializing_if = "Option::is_none", with = "serde_status")]
     pub status: Option<StatusCode>,
+
+    /// A short, human-readable summary of the problem.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
 }
 
-impl Error {
-    pub fn builder() -> ErrorBuilder {
-        Default::default()
+impl ErrorObject {
+    /// Returns a new `ErrorObject` with the specified `status`.
+    pub fn new(status: Option<StatusCode>) -> Self {
+        let title = status
+            .and_then(|value| value.canonical_reason())
+            .map(|reason| reason.to_owned());
+
+        ErrorObject {
+            status,
+            title,
+            ..Default::default()
+        }
     }
 }
 
-#[derive(Debug, Default)]
-pub struct ErrorBuilder {
-    code: Option<String>,
-    detail: Option<String>,
-    id: Option<String>,
-    links: Vec<(String, Link)>,
-    meta: Vec<(String, Value)>,
-    source: Option<Source>,
-    status: Option<StatusCode>,
-    title: Option<String>,
-}
-
-impl ErrorBuilder {
-    pub fn build(&mut self) -> Result<Error, ::error::Error> {
-        Ok(Error {
-            code: builder::optional(&mut self.code),
-            detail: builder::optional(&mut self.detail),
-            id: builder::optional(&mut self.id),
-            links: builder::iter(&mut self.links, builder::parse_key)?,
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
-            source: builder::optional(&mut self.source),
-            status: builder::optional(&mut self.status),
-            title: builder::optional(&mut self.title),
-            _ext: (),
-        })
-    }
-
-    pub fn code<V>(&mut self, value: V) -> &mut Self
-    where
-        V: AsRef<str>,
-    {
-        self.code = Some(value.as_ref().to_owned());
-        self
-    }
-
-    pub fn detail<V>(&mut self, value: V) -> &mut Self
-    where
-        V: AsRef<str>,
-    {
-        self.detail = Some(value.as_ref().to_owned());
-        self
-    }
-
-    pub fn id<V>(&mut self, value: V) -> &mut Self
-    where
-        V: AsRef<str>,
-    {
-        self.id = Some(value.as_ref().to_owned());
-        self
-    }
-
-    pub fn link<K>(&mut self, key: K, value: Link) -> &mut Self
-    where
-        K: AsRef<str>,
-    {
-        self.links.push((key.as_ref().to_owned(), value));
-        self
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
-    }
-
-    pub fn status(&mut self, value: StatusCode) -> &mut Self {
-        self.status = Some(value);
-        self
-    }
-
-    pub fn title<V>(&mut self, value: V) -> &mut Self
-    where
-        V: AsRef<str>,
-    {
-        self.title = Some(value.as_ref().to_owned());
-        self
-    }
-}
-
+/// References to the source of the error.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Source {
+pub struct ErrorSource {
+    /// A string indicating which query parameter caused the error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameter: Option<String>,
+
+    /// A JSON pointer to the associated entity in the request document.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pointer: Option<String>,
+
     /// Private field for backwards compatibility.
     #[serde(skip)]
     _ext: (),
+}
+
+impl ErrorSource {
+    /// Returns a new `ErrorSource` with the specified `parameter` and
+    /// `pointer` values.
+    pub fn new(parameter: Option<String>, pointer: Option<String>) -> Self {
+        ErrorSource {
+            parameter,
+            pointer,
+            _ext: (),
+        }
+    }
 }
 
 mod serde_status {
