@@ -433,34 +433,34 @@ macro_rules! expand_resource_impl {
         });
     };
 
-    (@rel $this:ident, $related:ident, $($arg:ident),*, {
+    (@rel $this:ident, $related:ident, $ctx:ident, {
         has_many $key:expr, { $($body:tt)* }
         $($rest:tt)*
     }) => {
-        {
+        if $ctx.field($key) {
             let key = Key::from_raw($key.to_owned());
-            expand_resource_impl!(@has_many $this, $related, key, $($arg),*, {
+            expand_resource_impl!(@has_many $this, $related, key, $ctx, {
                 $($body)*
             });
         }
 
-        expand_resource_impl!(@rel $this, $related, $($arg),*, {
+        expand_resource_impl!(@rel $this, $related, $ctx, {
             $($rest)*
         });
     };
 
-    (@rel $this:ident, $related:ident, $($arg:ident),*, {
+    (@rel $this:ident, $related:ident, $ctx:ident, {
         has_one $key:expr, { $($body:tt)* }
         $($rest:tt)*
     }) => {
-        {
+        if $ctx.field($key) {
             let key = Key::from_raw($key.to_owned());
-            expand_resource_impl!(@has_one $this, $related, key, $($arg),*, {
+            expand_resource_impl!(@has_one $this, $related, key, $ctx, {
                 $($body)*
             });
         }
 
-        expand_resource_impl!(@rel $this, $related, $($arg),*, {
+        expand_resource_impl!(@rel $this, $related, $ctx, {
             $($rest)*
         });
     };
