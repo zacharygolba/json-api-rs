@@ -1,196 +1,142 @@
-pub mod error;
-pub mod ident;
-pub mod link;
-pub mod object;
-pub mod relationship;
-pub mod specification;
+//! Components of a JSON API document.
+
+mod convert;
+mod ident;
+mod link;
+mod object;
+mod relationship;
+mod specification;
+
+mod error;
 
 use std::iter::FromIterator;
 
+use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use builder;
 use sealed::Sealed;
-use value::{Key, Map, Value};
+use value::{Key, Map, Set, Value};
 
-pub use self::error::Error;
+pub use self::convert::*;
+pub use self::error::{ErrorObject, ErrorSource};
 pub use self::ident::Identifier;
 pub use self::link::Link;
-pub use self::object::Object;
+pub use self::object::{NewObject, Object};
 pub use self::relationship::Relationship;
-pub use self::specification::JsonApi;
-#[doc(inline)]
-pub use self::specification::Version;
+pub use self::specification::{JsonApi, Version};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Document<T: PrimaryData> {
-    pub data: Data<T>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub included: Vec<Object>,
-    #[serde(default)]
-    pub jsonapi: JsonApi,
-    #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Key, Link>,
-    #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map,
-    /// Private field for backwards compatibility.
-    #[serde(skip)]
-    _ext: (),
+/// A marker trait used to indicate that a type can be the primary data for a
+/// document.
+pub trait PrimaryData: DeserializeOwned + Sealed + Serialize {
+    #[doc(hidden)]
+    fn flatten(self, &Set<Object>) -> Value;
+}
+
+/// Represents a compound JSON API document.
+///
+/// For more information, check out the *[document structure]* section of the JSON API
+/// specification.
+///
+/// [document structure]: https://goo.gl/CXTNmt
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(bound = "T: PrimaryData", untagged)]
+pub enum Document<T: PrimaryData> {
+    /// Does not contain errors.
+    Ok {
+        /// The primary data of the document. For more information, check out the
+        /// *[top level]* section of the JSON API specification.
+        ///
+        /// [top level]: https://goo.gl/fQdYgo
+        data: Data<T>,
+
+        /// Included resources, resolved from the `include` query parameter of a client
+        /// request.
+        #[serde(default, skip_serializing_if = "Set::is_empty")]
+        included: Set<Object>,
+
+        /// Information about this implementation of the specification that the
+        /// document was created with. For more information, check out the *[JSON API
+        /// object]* section of the JSON API specification.
+        ///
+        /// [JSON API object]: https://goo.gl/hZUcEt
+        #[serde(default)]
+        jsonapi: JsonApi,
+
+        /// Contains relevant links. If this value of this field is empty, it will not be
+        /// serialized. For more information, check out the *[links]* section of the JSON
+        /// API specification.
+        ///
+        /// [links]: https://goo.gl/E4E6Vt
+        #[serde(default, skip_serializing_if = "Map::is_empty")]
+        links: Map<Key, Link>,
+
+        /// Non-standard meta information. If this value of this field is empty, it will
+        /// not be serialized. For more information, check out the *[meta
+        /// information]* section of the JSON API specification.
+        ///
+        /// [meta information]: https://goo.gl/LyrGF8
+        #[serde(default, skip_serializing_if = "Map::is_empty")]
+        meta: Map,
+    },
+
+    /// Contains 1 or more error(s).
+    Err {
+        errors: Vec<ErrorObject>,
+
+        #[serde(default)]
+        jsonapi: JsonApi,
+
+        #[serde(default, skip_serializing_if = "Map::is_empty")]
+        links: Map<Key, Link>,
+
+        #[serde(default, skip_serializing_if = "Map::is_empty")]
+        meta: Map,
+    },
 }
 
 impl<T: PrimaryData> Document<T> {
-    pub fn builder() -> DocumentBuilder<T> {
-        Default::default()
-    }
-}
-
-#[derive(Debug)]
-pub struct DocumentBuilder<T: PrimaryData> {
-    data: Option<Data<T>>,
-    included: Vec<Object>,
-    jsonapi: Option<JsonApi>,
-    links: Vec<(String, Link)>,
-    meta: Vec<(String, Value)>,
-}
-
-impl<T: PrimaryData> DocumentBuilder<T> {
-    pub fn build(&mut self) -> Result<Document<T>, ::error::Error> {
-        Ok(Document {
-            data: builder::required("data", &mut self.data)?,
-            included: builder::iter(&mut self.included, Ok)?,
-            jsonapi: builder::default(&mut self.jsonapi),
-            links: builder::iter(&mut self.links, builder::parse_key)?,
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
-            _ext: (),
-        })
+    /// Returns `true` if the document does not contain any errors.
+    pub fn is_ok(&self) -> bool {
+        match *self {
+            Document::Ok { .. } => true,
+            Document::Err { .. } => false,
+        }
     }
 
-    pub fn data<V>(&mut self, value: V) -> &mut Self
-    where
-        V: Into<Data<T>>,
-    {
-        self.data = Some(value.into());
-        self
-    }
-
-    pub fn include(&mut self, value: Object) -> &mut Self {
-        self.included.push(value);
-        self
-    }
-
-    pub fn jsonapi(&mut self, value: JsonApi) -> &mut Self {
-        self.jsonapi = Some(value);
-        self
-    }
-
-    pub fn link<K>(&mut self, key: K, value: Link) -> &mut Self
-    where
-        K: AsRef<str>,
-    {
-        self.links.push((key.as_ref().to_owned(), value));
-        self
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
-    }
-}
-
-impl<T: PrimaryData> Default for DocumentBuilder<T> {
-    fn default() -> Self {
-        DocumentBuilder {
-            data: Default::default(),
-            included: Default::default(),
-            jsonapi: Default::default(),
-            links: Default::default(),
-            meta: Default::default(),
+    /// Returns `true` if the document contains 1 or more error(s).
+    pub fn is_err(&self) -> bool {
+        match *self {
+            Document::Ok { .. } => true,
+            Document::Err { .. } => false,
         }
     }
 }
 
-#[derive(Clone, Deserialize, Serialize)]
-pub struct ErrorDocument {
-    pub errors: Vec<Error>,
-    #[serde(default)]
-    pub jsonapi: JsonApi,
-    #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub links: Map<Key, Link>,
-    #[serde(default, skip_serializing_if = "Map::is_empty")]
-    pub meta: Map,
-    /// Private field for backwards compatibility.
-    #[serde(skip)]
-    _ext: (),
-}
-
-impl ErrorDocument {
-    pub fn builder() -> ErrorDocumentBuilder {
-        Default::default()
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct ErrorDocumentBuilder {
-    errors: Vec<Error>,
-    included: Vec<Object>,
-    jsonapi: Option<JsonApi>,
-    links: Vec<(String, Link)>,
-    meta: Vec<(String, Value)>,
-}
-
-impl ErrorDocumentBuilder {
-    pub fn build(&mut self) -> Result<ErrorDocument, ::error::Error> {
-        Ok(ErrorDocument {
-            errors: builder::iter(&mut self.errors, Ok)?,
-            jsonapi: builder::default(&mut self.jsonapi),
-            links: builder::iter(&mut self.links, builder::parse_key)?,
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
-            _ext: (),
-        })
-    }
-
-    pub fn error(&mut self, value: Error) -> &mut Self {
-        self.errors.push(value);
-        self
-    }
-
-    pub fn jsonapi(&mut self, value: JsonApi) -> &mut Self {
-        self.jsonapi = Some(value);
-        self
-    }
-
-    pub fn link<K>(&mut self, key: K, value: Link) -> &mut Self
-    where
-        K: AsRef<str>,
-    {
-        self.links.push((key.as_ref().to_owned(), value));
-        self
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-#[serde(untagged)]
+/// Describes the data of a document or resource linkage.
+///
+/// For more information, check out the *[top level]* section of the JSON API
+/// specification.
+///
+/// [top level]: https://goo.gl/fQdYgo
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(bound = "T: PrimaryData", untagged)]
 pub enum Data<T: PrimaryData> {
+    /// A collection of `T`. Used for requests that target resource collections.
     Collection(Vec<T>),
+
+    /// An optional `T`. Used for requests that target single resources.
     Member(Box<Option<T>>),
 }
 
 impl<T: PrimaryData> From<Option<T>> for Data<T> {
     fn from(value: Option<T>) -> Self {
         Data::Member(Box::new(value))
+    }
+}
+
+impl<T: PrimaryData> From<Vec<T>> for Data<T> {
+    fn from(value: Vec<T>) -> Self {
+        Data::Collection(value)
     }
 }
 
@@ -208,11 +154,3 @@ impl<T: PrimaryData> FromIterator<T> for Data<T> {
         Data::Collection(Vec::from_iter(iter))
     }
 }
-
-pub trait PrimaryData: Sealed + Serialize {}
-
-impl Sealed for Identifier {}
-impl PrimaryData for Identifier {}
-
-impl Sealed for Object {}
-impl PrimaryData for Object {}

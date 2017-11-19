@@ -10,29 +10,24 @@ macro_rules! catchers {
             _: RocketError,
             _req: &Request,
         ) -> Result<Response<'static>, Status> {
-            let code = $status.as_u16();
-            let reason = $status
-                .canonical_reason()
-                .map(String::from)
-                .unwrap_or(format!("{}", $status));
+            use json_api::doc::{Document, ErrorObject, Object};
 
-            let mut e = ::json_api::doc::Error::builder();
+            let doc: Document<Object> = Document::Err {
+                errors: {
+                    let mut errors = Vec::with_capacity(1);
 
-            e.status($status);
+                    errors.push(ErrorObject::new(Some($status)));
+                    errors
+                },
+                jsonapi: Default::default(),
+                links: Default::default(),
+                meta: Default::default(),
+            };
 
-            if !reason.is_empty() {
-                e.title(&reason);
-            }
-
-            ::json_api::ErrorDocument::builder()
-                .error(e.build().map_err(|_| Status::InternalServerError)?)
-                .build()
-                .map_err(|_| Status::InternalServerError)
-                .and_then(response::with_body)
-                .map(move |mut resp| {
-                    resp.set_raw_status(code, "");
-                    resp
-                })
+            response::with_body(doc).map(move |mut resp| {
+                resp.set_raw_status($status.as_u16(), "");
+                resp
+            })
         })*
 
         pub fn catchers() -> Vec<Catcher> {

@@ -15,7 +15,7 @@ where
     from_json(serde_json::to_value(value)?)
 }
 
-/// Interpret a `Value` as an instance of type `T`.
+/// Interpret a `Value` as a type `T`.
 pub fn from_value<T>(value: Value) -> Result<T, Error>
 where
     T: DeserializeOwned,

@@ -3,15 +3,34 @@ use std::fmt::{self, Formatter};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
+/// Limit and offset based pagination parameters.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Page {
+    /// The page number. This value is checked to be non-zero when a page is created via
+    /// the constructor method or decoded from a query string. If zero is passed to the
+    /// constructor or decoded from a query string, `1` will be used instead.
     pub number: u64,
+
+    /// Optionally specifies the maximum number of items to include per page.
     pub size: Option<u64>,
+
     /// Private field for backwards compatibility.
     _ext: (),
 }
 
 impl Page {
+    /// Returns a new `Page`. If zero is used for `number` it will be treated as `1`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # extern crate json_api;
+    /// #
+    /// # fn main() {
+    /// use json_api::query::Page;
+    /// assert_eq!(Page::new(1, None), Page::default());
+    /// # }
+    /// ```
     pub fn new(number: u64, size: Option<u64>) -> Self {
         let number = if number > 0 { number } else { 1 };
 
@@ -20,6 +39,12 @@ impl Page {
             size,
             _ext: (),
         }
+    }
+}
+
+impl Default for Page {
+    fn default() -> Self {
+        Page::new(1, None)
     }
 }
 

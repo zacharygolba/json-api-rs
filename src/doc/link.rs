@@ -1,4 +1,6 @@
+use std::cmp::{Eq, PartialEq};
 use std::fmt::{self, Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::str::FromStr;
 
@@ -6,22 +8,48 @@ use http::Uri;
 use serde::de::{self, Deserialize, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
-use builder;
 use error::Error;
-use value::{Map, Value};
+use value::Map;
 
-#[derive(Clone, Debug, Default, PartialEq)]
+/// A data structure containing a URL. Can be deserialized from either a string or link
+/// object.
+///
+/// For more information, check out the *[links]* section of the JSON API specification.
+///
+/// # Example
+///
+/// ```
+/// # extern crate json_api;
+/// #
+/// # use json_api::Error;
+/// #
+/// # fn example() -> Result<(), Error> {
+/// use json_api::doc::Link;
+/// "https://rust-lang.org".parse::<Link>()?;
+/// # Ok(())
+/// # }
+/// #
+/// # fn main() {
+/// # example().unwrap();
+/// # }
+/// ```
+///
+/// [links]: https://goo.gl/E4E6Vt
+#[derive(Clone, Debug, Default)]
 pub struct Link {
+    /// The link’s URI.
     pub href: Uri,
+
+    /// Non-standard meta information. If this value of this field is empty, the link
+    /// will be serialized as a string containing the contents of `href`. For more
+    /// information, check out the *[meta information]* section of the JSON API
+    /// specification.
+    ///
+    /// [meta information]: https://goo.gl/LyrGF8
     pub meta: Map,
+
     /// Private field for backwards compatibility.
     _ext: (),
-}
-
-impl Link {
-    pub fn builder() -> LinkBuilder {
-        Default::default()
-    }
 }
 
 impl Deref for Link {
@@ -34,9 +62,11 @@ impl Deref for Link {
 
 impl Display for Link {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.href)
+        self.href.fmt(f)
     }
 }
+
+impl Eq for Link {}
 
 impl FromStr for Link {
     type Err = Error;
@@ -47,6 +77,36 @@ impl FromStr for Link {
             meta: Default::default(),
             _ext: (),
         })
+    }
+}
+
+impl Hash for Link {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.href.hash(state)
+    }
+}
+
+impl PartialEq for Link {
+    fn eq(&self, rhs: &Link) -> bool {
+        self.href == rhs.href
+    }
+}
+
+impl PartialEq<Uri> for Link {
+    fn eq(&self, rhs: &Uri) -> bool {
+        self.href == *rhs
+    }
+}
+
+impl<'a> PartialEq<&'a str> for Link {
+    fn eq(&self, other: &&'a str) -> bool {
+        self.href == *other
+    }
+}
+
+impl<'a> PartialEq<Link> for &'a str {
+    fn eq(&self, link: &Link) -> bool {
+        *link == *self
     }
 }
 
@@ -133,38 +193,5 @@ impl Serialize for Link {
 
             state.end()
         }
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct LinkBuilder {
-    href: Option<String>,
-    meta: Vec<(String, Value)>,
-}
-
-impl LinkBuilder {
-    pub fn build(&mut self) -> Result<Link, Error> {
-        Ok(Link {
-            href: builder::required("href", &mut self.href)?.parse()?,
-            meta: builder::iter(&mut self.meta, builder::parse_key)?,
-            _ext: (),
-        })
-    }
-
-    pub fn href<V>(&mut self, value: V) -> &mut Self
-    where
-        V: AsRef<str>,
-    {
-        self.href = Some(value.as_ref().to_owned());
-        self
-    }
-
-    pub fn meta<K, V>(&mut self, key: K, value: V) -> &mut Self
-    where
-        K: AsRef<str>,
-        V: Into<Value>,
-    {
-        self.meta.push((key.as_ref().to_owned(), value.into()));
-        self
     }
 }

@@ -2,12 +2,15 @@ use std::io::Cursor;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
-use json_api::{Document, Resource};
-use json_api::doc::Data;
+use json_api::{self, Resource};
+use json_api::doc::Object;
+use rocket::Outcome;
 use rocket::http::Status;
-use rocket::request::Request;
+use rocket::request::{FromRequest, Request};
 use rocket::response::{Responder, Response};
 use serde::Serialize;
+
+use request::Query;
 
 #[derive(Debug)]
 pub struct Collection<T: Resource>(pub Vec<T>);
@@ -45,13 +48,17 @@ impl<T: Resource> FromIterator<T> for Collection<T> {
 }
 
 impl<T: Resource> Responder<'static> for Collection<T> {
-    fn respond_to(self, _request: &Request) -> Result<Response<'static>, Status> {
-        self.into_iter()
-            .map(Resource::object)
-            .collect::<Result<Vec<_>, _>>()
-            .map(Data::Collection)
-            .and_then(|data| Document::builder().data(data).build())
-            .map_err(|_| Status::InternalServerError)
+    fn respond_to(self, request: &Request) -> Result<Response<'static>, Status> {
+        let query = match Query::from_request(request) {
+            Outcome::Success(value) => Some(value.into_inner()),
+            Outcome::Failure(_) | Outcome::Forward(_) => None,
+        };
+
+        json_api::to_doc::<_, Object>(&*self, query.as_ref())
+            .map_err(|e| {
+                println!("{:#?}", e);
+                Status::InternalServerError
+            })
             .and_then(with_body)
             .map(|mut resp| {
                 resp.set_status(Status::Ok);
@@ -87,10 +94,17 @@ impl<T: Resource> DerefMut for Created<T> {
 }
 
 impl<T: Resource> Responder<'static> for Created<T> {
-    fn respond_to(self, _request: &Request) -> Result<Response<'static>, Status> {
-        self.object()
-            .and_then(|obj| Document::builder().data(obj).build())
-            .map_err(|_| Status::InternalServerError)
+    fn respond_to(self, request: &Request) -> Result<Response<'static>, Status> {
+        let query = match Query::from_request(request) {
+            Outcome::Success(value) => Some(value.into_inner()),
+            Outcome::Failure(_) | Outcome::Forward(_) => None,
+        };
+
+        json_api::to_doc::<_, Object>(&*self, query.as_ref())
+            .map_err(|e| {
+                println!("{:#?}", e);
+                Status::InternalServerError
+            })
             .and_then(with_body)
             .map(|mut resp| {
                 resp.set_status(Status::Created);
@@ -126,10 +140,17 @@ impl<T: Resource> DerefMut for Member<T> {
 }
 
 impl<T: Resource> Responder<'static> for Member<T> {
-    fn respond_to(self, _request: &Request) -> Result<Response<'static>, Status> {
-        self.object()
-            .and_then(|obj| Document::builder().data(obj).build())
-            .map_err(|_| Status::InternalServerError)
+    fn respond_to(self, request: &Request) -> Result<Response<'static>, Status> {
+        let query = match Query::from_request(request) {
+            Outcome::Success(value) => Some(value.into_inner()),
+            Outcome::Failure(_) | Outcome::Forward(_) => None,
+        };
+
+        json_api::to_doc::<_, Object>(&*self, query.as_ref())
+            .map_err(|e| {
+                println!("{:#?}", e);
+                Status::InternalServerError
+            })
             .and_then(with_body)
             .map(|mut resp| {
                 resp.set_status(Status::Ok);
