@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [v0.3.0](https://github.com/zacharygolba/json-api-rs/compare/v0.2.0...v0.3.0) (2017-11-19)
+
+#### :rocket: Enhancement
+* [#14](https://github.com/zacharygolba/json-api-rs/pull/14) Efficiently decode types from a document.
+* [#15](https://github.com/zacharygolba/json-api-rs/pull/15) Document and stabalize apis in the value module.
+
+#### :bug: Bug Fix
+* [#18](https://github.com/zacharygolba/json-api-rs/pull/18) Member names can start with reserved chars.
+
+#### :nail_care: Polish
+* [#17](https://github.com/zacharygolba/json-api-rs/pull/17) Add max width to rustfmt.toml.
+
+#### :house: Internal
+* [#16](https://github.com/zacharygolba/json-api-rs/pull/16) Improve internal and public builder apis.
+
 ## [v0.2.0](https://github.com/zacharygolba/json-api-rs/compare/v0.1.0...v0.2.0) (2017-11-5)
 
 #### :rocket: Enhancement
