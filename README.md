@@ -13,20 +13,23 @@ You can define a `Resource` using a friendly, declarative dsl.
 #### Concise
 
 ```rust
-pub struct Article {
-    pub id: u64,
-    pub body: String,
-    pub title: String,
-    pub author: User,
-    pub comments: Vec<Comment>,
+#[macro_use]
+extern crate json_api;
+
+struct Post {
+    id: u64,
+    body: String,
+    title: String,
+    author: Option<User>,
+    comments: Vec<Comment>,
 }
 
-resource!(Article, |&self| {
-    // Define the id with an expression that returns a string.
-    id self.id.to_string();
+resource!(Post, |&self| {
+    // Define the id.
+    id self.id;
 
     // Define the resource "type"
-    kind "articles";
+    kind "posts";
 
     // Define attributes with a comma seperated list of field names.
     attrs body, title;
@@ -40,29 +43,27 @@ resource!(Article, |&self| {
 #### Flexible
 
 ```rust
-pub struct Article {
-    pub id: u64,
-    pub body: String,
-    pub title: String,
-    pub author: User,
-    pub comments: Vec<Comment>,
+#[macro_use]
+extern crate json_api;
+
+struct Post {
+    id: u64,
+    body: String,
+    title: String,
+    author: Option<User>,
+    comments: Vec<Comment>,
 }
 
-resource!(Article, |&self| {
-    // Define the id with an expression that returns a string.
-    id self.id.to_string();
-
-    // Define the resource "type"
+resource!(Post, |&self| {
     kind "articles";
+    id self.id;
 
-    // Define attributes with a comma seperated list of field names.
     attrs body, title;
 
-    // Define a virtual attribute with a block expression
+    // Define a virtual attribute with an expression
     attr "preview", {
         self.body
-            .iter()
-            .cloned()
+            .chars()
             .take(140)
             .collect::<String>()
     }
@@ -70,7 +71,7 @@ resource!(Article, |&self| {
     // Define a relationship with granular detail
     has_one "author", {
         // Data for has one should be Option<&T> where T: Resource
-        data Some(&self.author);
+        data self.author.as_ref();
 
         // Define relationship links
         link "self", format!("/articles/{}/relationships/author", self.id);
@@ -100,10 +101,10 @@ resource!(Article, |&self| {
         href format!("/articles/{}", self.id);
     }
 
-    // Define arbitrary meta members with a block expression
-    meta "copyright", {
-        format!("© 2017 {}", self.author.full_name())
-    }
+    // Define arbitrary meta members an expression
+    meta "copyright", self.author.as_ref().map(|user| {
+        format!("© 2017 {}", user.full_name())
+    });
 });
 ```
 
