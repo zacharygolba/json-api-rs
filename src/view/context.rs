@@ -6,8 +6,8 @@ use value::fields::{Key, Path, Segment};
 /// A data structure containing render context that can be "forked" and passed
 /// to a child context.
 ///
-/// This struct is helpful if you want recursively call [`Resource::object`] to render a
-/// document's primary data and included resources.
+/// This struct is helpful if you want recursively call [`Resource::to_object`] to render
+/// a document's primary data and included resources.
 ///
 /// Since the `Context` struct requires a mutable (unique) reference to a document's
 /// included resources, only one context can be operated on at a time. In other words, if
@@ -15,7 +15,7 @@ use value::fields::{Key, Path, Segment};
 /// only operate on a single context at time, a recursive implementation of [included
 /// resources] and [sparse field-sets] is much easier.
 ///
-/// [`Resource::object`]: ../../trait.Resource.html#tymethod.object
+/// [`Resource::to_object`]: ../../trait.Resource.html#tymethod.to_object
 /// [included resources]: http://jsonapi.org/format/#fetching-includes
 /// [sparse field-sets]: http://jsonapi.org/format/#fetching-sparse-fieldsets
 #[derive(Debug)]
