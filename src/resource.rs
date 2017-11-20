@@ -329,7 +329,12 @@ macro_rules! resource {
                 use $crate::doc::Identifier;
                 use $crate::value::Key;
 
-                let mut ident = Identifier::new($target::kind(), $this.id());
+                let mut ident = {
+                    let kind = <$target as $crate::Resource>::kind();
+                    let id = $crate::Resource::id($this);
+
+                    Identifier::new(kind, id)
+                };
 
                 {
                     let _meta = &mut ident.meta;
@@ -364,7 +369,12 @@ macro_rules! resource {
                     T::kind()
                 }
 
-                let mut obj = Object::new($target::kind(), $this.id());
+                let mut obj = {
+                    let kind = <$target as $crate::Resource>::kind();
+                    let id = $crate::Resource::id($this);
+
+                    Object::new(kind, id)
+                };
 
                 {
                     let _attrs = &mut obj.attributes;
@@ -498,14 +508,15 @@ macro_rules! expand_resource_impl {
 
             if ctx.included() {
                 for item in $value {
-                    let object = item.to_object(&mut ctx)?;
+                    let object = $crate::Resource::to_object(item, &mut ctx)?;
+                    let ident = Identifier::from(&object);
 
                     ctx.include(object);
-                    data.push(item.to_ident(&mut ctx)?);
+                    data.push(ident);
                 }
             } else {
                 for item in $value {
-                    data.push(item.to_ident(&mut ctx)?);
+                    data.push($crate::Resource::to_ident(item, &mut ctx)?);
                 }
             }
 
@@ -539,10 +550,10 @@ macro_rules! expand_resource_impl {
             if let Some(item) = $value {
                 let mut ctx = $ctx.fork(item_kind(item), &$key);
 
-                data = Some(item.to_ident(&mut ctx)?);
+                data = Some($crate::Resource::to_ident(item, &mut ctx)?);
 
                 if ctx.included() {
-                    let object = item.to_object(&mut ctx)?;
+                    let object = $crate::Resource::to_object(item, &mut ctx)?;
                     ctx.include(object);
                 }
             }
