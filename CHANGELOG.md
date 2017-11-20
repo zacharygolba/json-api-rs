@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [v0.3.1](https://github.com/zacharygolba/json-api-rs/compare/v0.3.0...v0.3.1) (2017-11-20)
+
+#### :bug: Bug Fix
+* [#20](https://github.com/zacharygolba/json-api-rs/pull/20) Keys should be converted to kebab case when resources are rendered.
+* [#21](https://github.com/zacharygolba/json-api-rs/pull/21) Disambiguate method calls in the resource macro output.
+
+#### :memo: Documentation
+* [#22](https://github.com/zacharygolba/json-api-rs/pull/22) Typo in context docs.
+* [#23](https://github.com/zacharygolba/json-api-rs/pull/23) Update resource macro examples in the readme.
+
+#### Committers: 1
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
+
 ## [v0.3.0](https://github.com/zacharygolba/json-api-rs/compare/v0.2.0...v0.3.0) (2017-11-19)
 
 #### :rocket: Enhancement
@@ -17,6 +30,9 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 #### :house: Internal
 * [#16](https://github.com/zacharygolba/json-api-rs/pull/16) Improve internal and public builder apis.
+
+#### Committers: 1
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
 
 ## [v0.2.0](https://github.com/zacharygolba/json-api-rs/compare/v0.1.0...v0.2.0) (2017-11-5)
 
@@ -43,4 +59,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 * [#3](https://github.com/zacharygolba/json-api-rs/pull/3) Setup appveyor and circle ci.
 
 #### Committers: 1
-- Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
