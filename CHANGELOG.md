@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [v0.3.2](https://github.com/zacharygolba/json-api-rs/compare/v0.3.1...v0.3.2) (2017-11-20)
+
+#### :bug: Bug Fix
+* [#25](https://github.com/zacharygolba/json-api-rs/pull/25) Only use absolute paths in resource macro output.
+
+#### Committers: 1
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
+
 ## [v0.3.1](https://github.com/zacharygolba/json-api-rs/compare/v0.3.0...v0.3.1) (2017-11-20)
 
 #### :bug: Bug Fix
