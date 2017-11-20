@@ -408,7 +408,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = Key::from_raw($key.to_owned());
+            let key = $key.parse::<Key>()?;
             let value = $crate::to_value($value)?;
 
             $attrs.insert(key, value);
@@ -438,7 +438,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = Key::from_raw($key.to_owned());
+            let key = $key.parse::<Key>()?;
             expand_resource_impl!(@has_many $this, $related, key, $ctx, {
                 $($body)*
             });
@@ -454,7 +454,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = Key::from_raw($key.to_owned());
+            let key = $key.parse::<Key>()?;
             expand_resource_impl!(@has_one $this, $related, key, $ctx, {
                 $($body)*
             });
@@ -572,7 +572,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         {
-            let key = Key::from_raw($key.to_owned());
+            let key = $key.parse::<Key>()?;
             let link = expand_resource_impl!(@link $this, {
                 $($body)*
             });
@@ -613,7 +613,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         {
-            let key = Key::from_raw($key.to_owned());
+            let key = $key.parse::<Key>();
             let value = $crate::to_value($value)?;
 
             $meta.insert(key, value);
