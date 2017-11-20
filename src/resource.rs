@@ -311,12 +311,12 @@ macro_rules! resource {
     ($target:ident, |&$this:ident| { $($rest:tt)* }) => {
         impl $crate::Resource for $target {
             fn kind() -> $crate::value::Key {
-                use $crate::value::Key;
-                Key::from_raw(extract_resource_kind!({ $($rest)* }).to_owned())
+                let raw = extract_resource_kind!({ $($rest)* }).to_owned();
+                $crate::value::Key::from_raw(raw)
             }
 
             fn id(&$this) -> String {
-                use $crate::value::Stringify;
+                use $crate::value::Stringify as JsonApiStringifyTrait;
                 extract_resource_id!({ $($rest)* }).stringify()
             }
 
@@ -324,16 +324,11 @@ macro_rules! resource {
                 &$this,
                 _: &mut $crate::view::Context,
             ) -> Result<$crate::doc::Identifier, $crate::Error> {
-                #![allow(unused_imports)]
-
-                use $crate::doc::Identifier;
-                use $crate::value::Key;
-
                 let mut ident = {
                     let kind = <$target as $crate::Resource>::kind();
                     let id = $crate::Resource::id($this);
 
-                    Identifier::new(kind, id)
+                    $crate::doc::Identifier::new(kind, id)
                 };
 
                 {
@@ -350,18 +345,13 @@ macro_rules! resource {
                 &$this,
                 ctx: &mut $crate::view::Context,
             ) -> Result<$crate::doc::Object, $crate::error::Error> {
-                #![allow(unused_imports)]
-
-                use $crate::doc::{Identifier, Link, Object, Relationship};
-                use $crate::value::{Key, Path, Stringify};
-
                 #[allow(dead_code)]
-                fn item_kind<T: $crate::Resource>(_: &T) -> Key {
+                fn item_kind<T: $crate::Resource>(_: &T) -> $crate::value::Key {
                     T::kind()
                 }
 
                 #[allow(dead_code)]
-                fn iter_kind<'a, I, T>(_: &I) -> Key
+                fn iter_kind<'a, I, T>(_: &I) -> $crate::value::Key
                 where
                     I: Iterator<Item = &'a T>,
                     T: $crate::Resource + 'a,
@@ -373,7 +363,7 @@ macro_rules! resource {
                     let kind = <$target as $crate::Resource>::kind();
                     let id = $crate::Resource::id($this);
 
-                    Object::new(kind, id)
+                    $crate::doc::Object::new(kind, id)
                 };
 
                 {
@@ -418,7 +408,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = $key.parse::<Key>()?;
+            let key = $key.parse::<$crate::value::Key>()?;
             let value = $crate::to_value($value)?;
 
             $attrs.insert(key, value);
@@ -448,7 +438,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = $key.parse::<Key>()?;
+            let key = $key.parse::<$crate::value::Key>()?;
             expand_resource_impl!(@has_many $this, $related, key, $ctx, {
                 $($body)*
             });
@@ -464,7 +454,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         if $ctx.field($key) {
-            let key = $key.parse::<Key>()?;
+            let key = $key.parse::<$crate::value::Key>()?;
             expand_resource_impl!(@has_one $this, $related, key, $ctx, {
                 $($body)*
             });
@@ -499,7 +489,7 @@ macro_rules! expand_resource_impl {
         data $value:block
         $($rest:tt)*
     }) => {
-        let mut rel = Relationship::new({
+        let mut rel = $crate::doc::Relationship::new({
             let mut ctx = $ctx.fork(iter_kind(&$value), &$key);
             let mut data = match $value.size_hint() {
                 (_, Some(size)) => Vec::with_capacity(size),
@@ -509,7 +499,7 @@ macro_rules! expand_resource_impl {
             if ctx.included() {
                 for item in $value {
                     let object = $crate::Resource::to_object(item, &mut ctx)?;
-                    let ident = Identifier::from(&object);
+                    let ident = $crate::doc::Identifier::from(&object);
 
                     ctx.include(object);
                     data.push(ident);
@@ -544,7 +534,7 @@ macro_rules! expand_resource_impl {
         data $value:block
         $($rest:tt)*
     }) => {
-        let mut rel = Relationship::new({
+        let mut rel = $crate::doc::Relationship::new({
             let mut data = None;
 
             if let Some(item) = $value {
@@ -583,7 +573,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         {
-            let key = $key.parse::<Key>()?;
+            let key = $key.parse::<$crate::value::Key>()?;
             let link = expand_resource_impl!(@link $this, {
                 $($body)*
             });
@@ -607,7 +597,7 @@ macro_rules! expand_resource_impl {
     };
 
     (@link $this:ident, { href $value:block $($rest:tt)* }) => {{
-        let mut link = $value.parse::<Link>()?;
+        let mut link = $value.parse::<$crate::doc::Link>()?;
 
         {
             let _meta = &link.meta;
@@ -624,7 +614,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         {
-            let key = $key.parse::<Key>()?;
+            let key = $key.parse::<$crate::value::Key>()?;
             let value = $crate::to_value($value)?;
 
             $meta.insert(key, value);
