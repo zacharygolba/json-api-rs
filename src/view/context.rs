@@ -15,7 +15,7 @@ use value::fields::{Key, Path, Segment};
 /// only operate on a single context at time, a recursive implementation of [included
 /// resources] and [sparse field-sets] is much easier.
 ///
-/// [`Resource::to_object`]: ../../trait.Resource.html#tymethod.to_object
+/// [`Resource::to_object`]: ../trait.Resource.html#tymethod.to_object
 /// [included resources]: http://jsonapi.org/format/#fetching-includes
 /// [sparse field-sets]: http://jsonapi.org/format/#fetching-sparse-fieldsets
 #[derive(Debug)]
