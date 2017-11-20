@@ -613,7 +613,7 @@ macro_rules! expand_resource_impl {
         $($rest:tt)*
     }) => {
         {
-            let key = $key.parse::<Key>();
+            let key = $key.parse::<Key>()?;
             let value = $crate::to_value($value)?;
 
             $meta.insert(key, value);
