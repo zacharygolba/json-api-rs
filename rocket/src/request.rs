@@ -1,5 +1,6 @@
-use serde::de::DeserializeOwned;
 use std::ops::{Deref, DerefMut};
+
+use serde::de::DeserializeOwned;
 
 use json_api::{self, Error};
 use json_api::doc::{NewObject, Object};
@@ -8,7 +9,7 @@ use json_api::value::{Key, Path, Value};
 use json_api::value::collections::{map, set, Set};
 use rocket::data::{self, Data, FromData};
 use rocket::http::Status;
-use rocket::outcome::IntoOutcome;
+use rocket::outcome::Outcome;
 use rocket::request::{self, FromRequest, Request};
 
 #[derive(Debug)]
@@ -39,9 +40,12 @@ impl<T: DeserializeOwned> FromData for Create<T> {
     type Error = Error;
 
     fn from_data(_: &Request, data: Data) -> data::Outcome<Self, Self::Error> {
-        json_api::from_reader::<_, NewObject, _>(data.open())
-            .map(Create)
-            .into_outcome(Status::BadRequest)
+        let reader = data.open();
+
+        match json_api::from_reader::<_, NewObject, _>(reader) {
+            Ok(value) => Outcome::Success(Create(value)),
+            Err(e) => fail(e),
+        }
     }
 }
 
@@ -73,9 +77,12 @@ impl<T: DeserializeOwned> FromData for Update<T> {
     type Error = Error;
 
     fn from_data(_: &Request, data: Data) -> data::Outcome<Self, Self::Error> {
-        json_api::from_reader::<_, Object, _>(data.open())
-            .map(Update)
-            .into_outcome(Status::BadRequest)
+        let reader = data.open();
+
+        match json_api::from_reader::<_, Object, _>(reader) {
+            Ok(value) => Outcome::Success(Update(value)),
+            Err(e) => fail(e),
+        }
     }
 }
 
@@ -117,11 +124,20 @@ impl<'a, 'r> FromRequest<'a, 'r> for Query {
     type Error = Error;
 
     fn from_request(req: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
-        let data = req.uri().query();
-
-        data.map(query::from_str)
-            .unwrap_or_else(|| Ok(Default::default()))
-            .map(|inner| Query { inner })
-            .into_outcome(Status::BadRequest)
+        match req.uri().query().map(query::from_str) {
+            Some(Ok(inner)) => Outcome::Success(Query { inner }),
+            Some(Err(e)) => fail(e),
+            None => Outcome::Success(Default::default()),
+        }
     }
+}
+
+fn fail<T, F>(e: Error) -> Outcome<T, (Status, Error), F> {
+    use config::ROCKET_ENV;
+
+    if !ROCKET_ENV.is_prod() {
+        eprintln!("{:?}", e);
+    }
+
+    Outcome::Failure((Status::BadRequest, e))
 }

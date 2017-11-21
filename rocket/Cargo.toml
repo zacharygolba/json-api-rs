@@ -23,10 +23,12 @@ repository = "zacharygolba/json-api-rs"
 repository = "zacharygolba/json-api-rs"
 
 [dependencies]
+lazy_static = "0.2.11"
 rocket = "0.3"
 rocket_contrib = "0.3"
 serde = "1.0"
 serde_json = "1.0"
+thread_local = "0.3.4"
 
 [dependencies.json-api]
 path = "../"
