@@ -23,6 +23,7 @@ repository = "zacharygolba/json-api-rs"
 repository = "zacharygolba/json-api-rs"
 
 [dependencies]
+lazy_static = "0.2.11"
 rocket = "0.3"
 rocket_contrib = "0.3"
 serde = "1.0"

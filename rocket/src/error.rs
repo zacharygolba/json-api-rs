@@ -10,6 +10,7 @@ macro_rules! catchers {
             _: RocketError,
             _req: &Request,
         ) -> Result<Response<'static>, Status> {
+            use json_api;
             use json_api::doc::{Document, ErrorObject, Object};
 
             let doc: Document<Object> = Document::Err {
@@ -24,10 +25,13 @@ macro_rules! catchers {
                 meta: Default::default(),
             };
 
-            response::with_body(doc).map(move |mut resp| {
-                resp.set_raw_status($status.as_u16(), "");
-                resp
-            })
+            json_api::to_vec(doc, None)
+                .map(response::with_body)
+                .or_else(response::fail)
+                .map(|mut resp| {
+                    resp.set_raw_status($status.as_u16(), "");
+                    resp
+                })
         })*
 
         pub fn catchers() -> Vec<Catcher> {
