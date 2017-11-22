@@ -14,8 +14,11 @@ use std::iter::FromIterator;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
+use error::Error;
+use query::Query;
 use sealed::Sealed;
 use value::{Key, Map, Set, Value};
+use view::Render;
 
 pub use self::convert::*;
 pub use self::error::{ErrorObject, ErrorSource};
@@ -109,6 +112,12 @@ impl<T: PrimaryData> Document<T> {
             Document::Ok { .. } => true,
             Document::Err { .. } => false,
         }
+    }
+}
+
+impl<T: PrimaryData> Render<T> for Document<T> {
+    fn render(self, _: Option<&Query>) -> Result<Document<T>, Error> {
+        Ok(self)
     }
 }
 

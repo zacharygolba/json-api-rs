@@ -2,13 +2,12 @@ use std::io::Cursor;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
-use json_api::{self, Resource};
+use json_api::{self, Error, Resource};
 use json_api::doc::Object;
 use rocket::Outcome;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Request};
 use rocket::response::{Responder, Response};
-use serde::Serialize;
 
 use request::Query;
 
@@ -54,16 +53,9 @@ impl<T: Resource> Responder<'static> for Collection<T> {
             Outcome::Failure(_) | Outcome::Forward(_) => None,
         };
 
-        json_api::to_doc::<_, Object>(&*self, query.as_ref())
-            .map_err(|e| {
-                println!("{:#?}", e);
-                Status::InternalServerError
-            })
-            .and_then(with_body)
-            .map(|mut resp| {
-                resp.set_status(Status::Ok);
-                resp
-            })
+        json_api::to_vec::<_, Object>(&*self, query.as_ref())
+            .map(with_body)
+            .or_else(fail)
     }
 }
 
@@ -100,12 +92,9 @@ impl<T: Resource> Responder<'static> for Created<T> {
             Outcome::Failure(_) | Outcome::Forward(_) => None,
         };
 
-        json_api::to_doc::<_, Object>(&*self, query.as_ref())
-            .map_err(|e| {
-                println!("{:#?}", e);
-                Status::InternalServerError
-            })
-            .and_then(with_body)
+        json_api::to_vec::<_, Object>(&*self, query.as_ref())
+            .map(with_body)
+            .or_else(fail)
             .map(|mut resp| {
                 resp.set_status(Status::Created);
                 resp
@@ -146,29 +135,25 @@ impl<T: Resource> Responder<'static> for Member<T> {
             Outcome::Failure(_) | Outcome::Forward(_) => None,
         };
 
-        json_api::to_doc::<_, Object>(&*self, query.as_ref())
-            .map_err(|e| {
-                println!("{:#?}", e);
-                Status::InternalServerError
-            })
-            .and_then(with_body)
-            .map(|mut resp| {
-                resp.set_status(Status::Ok);
-                resp
-            })
+        json_api::to_vec::<_, Object>(&*self, query.as_ref())
+            .map(with_body)
+            .or_else(fail)
     }
 }
 
-pub(crate) fn with_body<T>(value: T) -> Result<Response<'static>, Status>
-where
-    T: Serialize,
-{
-    ::serde_json::to_vec(&value)
-        .map_err(|_| Status::InternalServerError)
-        .map(|body| {
-            Response::build()
-                .raw_header("Content-Type", "application/vnd.api+json")
-                .sized_body(Cursor::new(body))
-                .finalize()
-        })
+pub(crate) fn with_body(body: Vec<u8>) -> Response<'static> {
+    Response::build()
+        .raw_header("Content-Type", "application/vnd.api+json")
+        .sized_body(Cursor::new(body))
+        .finalize()
+}
+
+pub(crate) fn fail(e: Error) -> Result<Response<'static>, Status> {
+    use config::ROCKET_ENV;
+
+    if !ROCKET_ENV.is_prod() {
+        eprintln!("{:?}", e);
+    }
+
+    Err(Status::InternalServerError)
 }

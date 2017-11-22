@@ -120,6 +120,20 @@ impl Query {
     }
 }
 
+impl Deref for Query {
+    type Target = JsonApiQuery;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Query {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
 impl<'a, 'r> FromRequest<'a, 'r> for Query {
     type Error = Error;
 
