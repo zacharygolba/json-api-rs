@@ -148,7 +148,7 @@ impl PrimaryData for Identifier {
         incl.into_iter()
             .find(|item| self == **item)
             .map(|item| item.clone().flatten(incl))
-            .unwrap_or_else(|| self.id.into())
+            .unwrap_or_else(|| self.id.clone().into())
     }
 }
 
