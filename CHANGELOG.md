@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [v0.4.0](https://github.com/zacharygolba/json-api-rs/compare/v0.3.2...v0.4.0) (2017-11-22)
+
+#### :rocket: Enhancement
+* [#27](https://github.com/zacharygolba/json-api-rs/pull/27) Basic error logging when running in a non-prod env.
+
+#### Committers: 1
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
+
 ## [v0.3.2](https://github.com/zacharygolba/json-api-rs/compare/v0.3.1...v0.3.2) (2017-11-20)
 
 #### :bug: Bug Fix
