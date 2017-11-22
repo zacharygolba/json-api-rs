@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [v0.4.1](https://github.com/zacharygolba/json-api-rs/compare/v0.4.0...v0.4.1) (2017-11-22)
+
+#### :bug: Bug Fix
+* [#29](https://github.com/zacharygolba/json-api-rs/pull/29) From_* impl is broken for orphaned idents.
+
+#### Committers: 1
+* Zachary Golba ([zacharygolba](https://github.com/zacharygolba))
+
 ## [v0.4.0](https://github.com/zacharygolba/json-api-rs/compare/v0.3.2...v0.4.0) (2017-11-22)
 
 #### :rocket: Enhancement
