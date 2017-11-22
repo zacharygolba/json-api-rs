@@ -148,6 +148,7 @@ pub(crate) fn with_body(body: Vec<u8>) -> Response<'static> {
         .finalize()
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
 pub(crate) fn fail(e: Error) -> Result<Response<'static>, Status> {
     use config::ROCKET_ENV;
 
