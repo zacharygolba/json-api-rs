@@ -7,13 +7,10 @@ echo ""
 
 run rustup install stable beta $NIGHTLY
 run rustup default $DEFAULT_TOOLCHAIN
+run rustup component add rustfmt-preview
 
 if ! has_plugin clippy; then
   run cargo +$NIGHTLY install clippy --vers 0.0.170
-fi
-
-if ! has_plugin fmt; then
-  run cargo +$NIGHTLY install rustfmt-nightly --vers 0.2.15
 fi
 
 run cargo update
