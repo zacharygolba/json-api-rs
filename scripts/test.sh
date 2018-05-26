@@ -10,19 +10,19 @@ run rustup default $DEFAULT_TOOLCHAIN
 run rustup component add rustfmt-preview
 
 if ! has_plugin clippy; then
-  run cargo +$NIGHTLY install clippy --vers 0.0.170
+  run cargo +$NIGHTLY install clippy --vers 0.0.205
 fi
 
 run cargo update
 run cargo build
 
+run_plugin fmt -- --check
+
 if [ $DEFAULT_TOOLCHAIN == $NIGHTLY ]; then
   run_plugin $NIGHTLY clippy --all
-  run_plugin $NIGHTLY fmt --all -- --write-mode diff
   run cargo test --all --all-features
 else
   run_plugin $NIGHTLY clippy
-  run_plugin $NIGHTLY fmt -- --write-mode diff
   run cargo test
 fi
 

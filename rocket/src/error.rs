@@ -1,6 +1,6 @@
 use json_api::http::StatusCode;
-use rocket::{Catcher, Error as RocketError, Request, Response};
 use rocket::http::Status;
+use rocket::{Catcher, Error as RocketError, Request, Response};
 
 use response;
 

@@ -2,12 +2,12 @@ use std::io::Cursor;
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut};
 
-use json_api::{self, Error, Resource};
 use json_api::doc::Object;
-use rocket::Outcome;
+use json_api::{self, Error, Resource};
 use rocket::http::Status;
 use rocket::request::{FromRequest, Request};
 use rocket::response::{Responder, Response};
+use rocket::Outcome;
 
 use request::Query;
 
