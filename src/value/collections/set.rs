@@ -12,9 +12,9 @@ use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use error::Error;
 use sealed::Sealed;
-use value::{Key, Stringify};
-use value::collections::Equivalent;
 use value::collections::map::{self, Keys, Map};
+use value::collections::Equivalent;
+use value::{Key, Stringify};
 
 /// A hash set implemented as a `Map` where the value is `()`.
 #[derive(Clone, Eq, PartialEq)]

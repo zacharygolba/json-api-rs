@@ -13,7 +13,7 @@ mod config {
 
     use rocket::config::Environment;
 
-    lazy_static!{
+    lazy_static! {
         pub static ref ROCKET_ENV: Environment = {
             match env::var("ROCKET_ENV").ok() {
                 Some(value) => value.parse().unwrap_or(Environment::Development),

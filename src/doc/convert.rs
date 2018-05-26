@@ -22,7 +22,8 @@ where
                     Some(item) => item.flatten(&included),
                     None => Value::Null,
                 },
-                Data::Collection(data) => data.into_iter()
+                Data::Collection(data) => data
+                    .into_iter()
                     .map(|item| item.flatten(&included))
                     .collect(),
             });
@@ -124,23 +125,18 @@ where
     T: Render<U>,
     U: PrimaryData,
 {
-    Ok(serde_json::to_writer(writer, &to_doc(value, query)?)?)
+    serde_json::to_writer(writer, &to_doc(value, query)?)?;
+    Ok(())
 }
 
 /// Render type `T` as a `Document<U>` and then serialize it as pretty-printed
 /// JSON into the IO stream.
-pub fn to_writer_pretty<W, T, U>(
-    writer: W,
-    value: T,
-    query: Option<&Query>,
-) -> Result<(), Error>
+pub fn to_writer_pretty<W, T, U>(writer: W, value: T, query: Option<&Query>) -> Result<(), Error>
 where
     W: Write,
     T: Render<U>,
     U: PrimaryData,
 {
-    Ok(serde_json::to_writer_pretty(
-        writer,
-        &to_doc(value, query)?,
-    )?)
+    serde_json::to_writer_pretty(writer, &to_doc(value, query)?)?;
+    Ok(())
 }
