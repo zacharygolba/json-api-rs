@@ -8,7 +8,6 @@ use serde::ser::{Serialize, Serializer};
 
 use error::Error;
 use sealed::Sealed;
-use value::Stringify;
 
 /// Represents a single member name.
 ///
@@ -102,16 +101,16 @@ impl FromStr for Key {
 
         while let Some(value) = chars.next() {
             match value {
-                '\u{002e}' |
-                '\u{002f}' |
-                '\u{0040}' |
-                '\u{0060}' |
-                '\u{0000}'...'\u{001f}' |
-                '\u{0021}'...'\u{0029}' |
-                '\u{002a}'...'\u{002c}' |
-                '\u{003a}'...'\u{003f}' |
-                '\u{005b}'...'\u{005e}' |
-                '\u{007b}'...'\u{007f}' => {
+                '\u{002e}'
+                | '\u{002f}'
+                | '\u{0040}'
+                | '\u{0060}'
+                | '\u{0000}'...'\u{001f}'
+                | '\u{0021}'...'\u{0029}'
+                | '\u{002a}'...'\u{002c}'
+                | '\u{003a}'...'\u{003f}'
+                | '\u{005b}'...'\u{005e}'
+                | '\u{007b}'...'\u{007f}' => {
                     bail!("reserved '{}'", value);
                 }
                 '_' | '-' | ' ' if dest.is_empty() => {
@@ -199,12 +198,6 @@ impl Serialize for Key {
 }
 
 impl Sealed for Key {}
-
-impl Stringify for Key {
-    fn to_bytes(&self) -> Vec<u8> {
-        self.as_bytes().to_vec()
-    }
-}
 
 #[inline]
 fn as_lowercase(value: char) -> char {

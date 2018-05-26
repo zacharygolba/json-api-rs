@@ -10,7 +10,7 @@ use serde::ser::{Serialize, Serializer};
 
 use error::Error;
 use sealed::Sealed;
-use value::{Key, Stringify};
+use value::Key;
 
 /// Represents a dot-separated list of member names.
 ///
@@ -276,7 +276,7 @@ impl Deref for Path {
 
 impl Display for Path {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_str(&self.stringify())
+        f.write_str(&self.0.join("."))
     }
 }
 
@@ -300,13 +300,13 @@ impl<'a> Extend<&'a Key> for Path {
 
 impl From<Path> for String {
     fn from(path: Path) -> Self {
-        path.stringify()
+        path.to_string()
     }
 }
 
 impl From<Path> for Vec<u8> {
     fn from(path: Path) -> Self {
-        path.to_bytes()
+        path.to_string().into_bytes()
     }
 }
 
@@ -401,30 +401,11 @@ impl Serialize for Path {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.stringify())
+        serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Sealed for Path {}
-
-impl Stringify for Path {
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = match self.char_count() {
-            0 => return Default::default(),
-            len => Vec::with_capacity(len),
-        };
-
-        for key in self {
-            if !bytes.is_empty() {
-                bytes.push(b'.');
-            }
-
-            bytes.append(&mut key.to_bytes());
-        }
-
-        bytes
-    }
-}
 
 /// Shared behavior for types that can be combined to create a `Path`.
 pub trait Segment<T> {

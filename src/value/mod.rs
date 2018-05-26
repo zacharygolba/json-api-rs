@@ -1,7 +1,6 @@
 //! Represent and interact with JSON API values.
 
 pub(crate) mod convert;
-mod stringify;
 
 pub mod collections;
 pub mod fields;
@@ -22,7 +21,6 @@ pub use self::collections::{Map, Set};
 pub use self::convert::{from_value, to_value};
 #[doc(no_inline)]
 pub use self::fields::{Key, Path};
-pub use self::stringify::Stringify;
 
 /// Represents any valid JSON API value.
 ///

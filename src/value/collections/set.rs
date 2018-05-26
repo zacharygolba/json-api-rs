@@ -1,6 +1,6 @@
 //! A hash set implemented as a `Map` where the value is `()`.
 
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter, Write};
 use std::hash::Hash;
 use std::iter::FromIterator;
 use std::marker::PhantomData;
@@ -12,9 +12,9 @@ use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 use error::Error;
 use sealed::Sealed;
-use value::{Key, Stringify};
-use value::collections::Equivalent;
 use value::collections::map::{self, Keys, Map};
+use value::collections::Equivalent;
+use value::Key;
 
 /// A hash set implemented as a `Map` where the value is `()`.
 #[derive(Clone, Eq, PartialEq)]
@@ -326,6 +326,23 @@ impl<T: Eq + Hash> Default for Set<T> {
     }
 }
 
+impl<T: Display + Eq + Hash> Display for Set<T> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let mut iter = self.iter();
+
+        if let Some(item) = iter.next() {
+            Display::fmt(item, f)?;
+        }
+
+        for item in iter {
+            f.write_char(',')?;
+            Display::fmt(item, f)?;
+        }
+
+        Ok(())
+    }
+}
+
 impl<T: Eq + Hash> Extend<T> for Set<T> {
     fn extend<I>(&mut self, iter: I)
     where
@@ -458,22 +475,6 @@ impl<T: Eq + Hash + Serialize> Serialize for Set<T> {
 }
 
 impl<T: Eq + Hash + Sealed> Sealed for Set<T> {}
-
-impl<T: Eq + Hash + Stringify> Stringify for Set<T> {
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::new();
-
-        for value in self {
-            if !bytes.is_empty() {
-                bytes.push(b',');
-            }
-
-            bytes.append(&mut value.to_bytes());
-        }
-
-        bytes
-    }
-}
 
 /// A draining iterator over the items of a `Set`.
 pub struct Drain<'a, T: 'a> {

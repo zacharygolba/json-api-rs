@@ -5,7 +5,7 @@ use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
 use error::Error;
-use value::{Map, Stringify};
+use value::Map;
 
 /// Information about this implementation of the specification.
 ///
@@ -104,21 +104,5 @@ impl Serialize for Version {
         serializer.serialize_str(match *self {
             Version::V1 => "1.0",
         })
-    }
-}
-
-impl Stringify for Version {
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::with_capacity(3);
-
-        match *self {
-            Version::V1 => {
-                bytes.push(b'1');
-                bytes.push(b'.');
-                bytes.push(b'0');
-            }
-        }
-
-        bytes
     }
 }

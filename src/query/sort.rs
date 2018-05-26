@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Formatter, Write};
 use std::ops::Neg;
 use std::str::FromStr;
 
@@ -8,7 +8,6 @@ use serde::ser::{Serialize, Serializer};
 use error::Error;
 use query::Path;
 use sealed::Sealed;
-use value::Stringify;
 
 /// A single sort instruction containing a direction and field path.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -66,7 +65,11 @@ impl Sort {
 
 impl Display for Sort {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_str(&self.stringify())
+        if self.direction.is_desc() {
+            f.write_char('-')?;
+        }
+
+        Display::fmt(&self.field, f)
     }
 }
 
@@ -123,25 +126,11 @@ impl Serialize for Sort {
     where
         S: Serializer,
     {
-        self.stringify().serialize(serializer)
+        self.to_string().serialize(serializer)
     }
 }
 
 impl Sealed for Sort {}
-
-impl Stringify for Sort {
-    fn to_bytes(&self) -> Vec<u8> {
-        let mut field = self.field.to_bytes();
-        let mut bytes = Vec::with_capacity(field.len() + 1);
-
-        if self.direction.is_desc() {
-            bytes.push(b'-');
-        }
-
-        bytes.append(&mut field);
-        bytes
-    }
-}
 
 /// The direction of a sort instruction.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

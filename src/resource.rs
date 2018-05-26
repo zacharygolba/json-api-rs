@@ -3,8 +3,8 @@ use std::mem;
 use doc::{Data, Document, Identifier, Object};
 use error::Error;
 use query::Query;
-use value::Set;
 use value::fields::Key;
+use value::Set;
 use view::{Context, Render};
 
 /// A trait indicating that the given type can be represented as a resource.
@@ -316,8 +316,7 @@ macro_rules! resource {
             }
 
             fn id(&$this) -> String {
-                use $crate::value::Stringify as JsonApiStringifyTrait;
-                extract_resource_id!({ $($rest)* }).stringify()
+                extract_resource_id!({ $($rest)* }).to_string()
             }
 
             fn to_ident(
