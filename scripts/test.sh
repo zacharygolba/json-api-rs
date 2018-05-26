@@ -10,7 +10,7 @@ run rustup default $DEFAULT_TOOLCHAIN
 run rustup component add rustfmt-preview
 
 if ! has_plugin clippy; then
-  run cargo +$NIGHTLY install clippy --vers 0.0.205
+  run cargo +$NIGHTLY install clippy --vers 0.0.204
 fi
 
 run cargo update
