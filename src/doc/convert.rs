@@ -22,8 +22,7 @@ where
                     Some(item) => item.flatten(&included),
                     None => Value::Null,
                 },
-                Data::Collection(data) => data
-                    .into_iter()
+                Data::Collection(data) => data.into_iter()
                     .map(|item| item.flatten(&included))
                     .collect(),
             });

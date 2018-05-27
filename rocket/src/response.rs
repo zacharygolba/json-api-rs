@@ -4,10 +4,10 @@ use std::ops::{Deref, DerefMut};
 
 use json_api::doc::Object;
 use json_api::{self, Error, Resource};
+use rocket::Outcome;
 use rocket::http::Status;
 use rocket::request::{FromRequest, Request};
 use rocket::response::{Responder, Response};
-use rocket::Outcome;
 
 use request::Query;
 

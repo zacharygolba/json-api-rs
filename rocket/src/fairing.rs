@@ -1,5 +1,5 @@
-use rocket::fairing::{Fairing, Info, Kind};
 use rocket::Rocket;
+use rocket::fairing::{Fairing, Info, Kind};
 
 use error;
 

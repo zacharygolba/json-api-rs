@@ -3,8 +3,8 @@ use std::mem;
 use doc::{Data, Document, Identifier, Object};
 use error::Error;
 use query::Query;
-use value::fields::Key;
 use value::Set;
+use value::fields::Key;
 use view::{Context, Render};
 
 /// A trait indicating that the given type can be represented as a resource.
