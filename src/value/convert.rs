@@ -47,7 +47,8 @@ pub(crate) fn from_json(value: JsonValue) -> Result<Value, Error> {
         JsonValue::Array(data) => data.into_iter().map(from_json).collect(),
         JsonValue::Bool(data) => Ok(Value::Bool(data)),
         JsonValue::Number(data) => Ok(Value::Number(data)),
-        JsonValue::Object(data) => data.into_iter()
+        JsonValue::Object(data) => data
+            .into_iter()
             .map(|(k, v)| Ok((k.parse()?, from_json(v)?)))
             .collect(),
         JsonValue::String(data) => Ok(Value::String(data)),

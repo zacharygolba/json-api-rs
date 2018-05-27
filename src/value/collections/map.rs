@@ -12,8 +12,8 @@ use ordermap::{self, OrderMap};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use value::{Key, Value};
 use value::collections::Equivalent;
+use value::{Key, Value};
 
 /// A hash map implementation with consistent ordering.
 #[derive(Clone, Eq, PartialEq)]
@@ -370,7 +370,6 @@ where
     {
         self.inner.remove(key)
     }
-
 
     /// Reserves capacity for at least additional more elements to be inserted
     /// in the `Map`. The collection may reserve more space to avoid frequent

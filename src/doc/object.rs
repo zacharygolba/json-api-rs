@@ -447,9 +447,7 @@ impl PrimaryData for NewObject {
                     Some(Identifier { id, .. }) => Value::String(id),
                     None => Value::Null,
                 },
-                Data::Collection(data) => {
-                    data.into_iter().map(|ident| ident.id).collect()
-                }
+                Data::Collection(data) => data.into_iter().map(|ident| ident.id).collect(),
             };
 
             map.insert(key, value);

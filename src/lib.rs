@@ -27,12 +27,13 @@ pub mod value;
 pub mod view;
 
 #[doc(inline)]
+pub use doc::Document;
+#[doc(inline)]
 pub use doc::{from_doc, from_reader, from_slice, from_str};
 #[doc(inline)]
-pub use doc::{to_doc, to_string, to_string_pretty, to_vec, to_vec_pretty, to_writer,
-              to_writer_pretty};
-#[doc(inline)]
-pub use doc::Document;
+pub use doc::{
+    to_doc, to_string, to_string_pretty, to_vec, to_vec_pretty, to_writer, to_writer_pretty,
+};
 #[doc(inline)]
 pub use error::Error;
 pub use resource::Resource;
