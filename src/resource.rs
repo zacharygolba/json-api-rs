@@ -316,8 +316,7 @@ macro_rules! resource {
             }
 
             fn id(&$this) -> String {
-                use $crate::value::Stringify as JsonApiStringifyTrait;
-                extract_resource_id!({ $($rest)* }).stringify()
+                extract_resource_id!({ $($rest)* }).to_string()
             }
 
             fn to_ident(

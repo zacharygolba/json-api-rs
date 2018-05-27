@@ -12,7 +12,7 @@ use serde::ser::{Serialize, SerializeStruct, Serializer};
 use serde_qs;
 
 use error::Error;
-use value::{Key, Map, Path, Set, Stringify, Value};
+use value::{Key, Map, Path, Set, Value};
 
 pub use self::builder::Builder;
 pub use self::page::Page;
@@ -189,7 +189,7 @@ impl Serialize for Query {
             let mut fields = Map::with_capacity(self.fields.len());
 
             for (key, value) in &self.fields {
-                fields.insert(key, value.stringify());
+                fields.insert(key, value.to_string());
             }
 
             state.serialize_field("fields", &fields)?;
@@ -200,7 +200,7 @@ impl Serialize for Query {
         }
 
         if !self.include.is_empty() {
-            state.serialize_field("include", &self.include.stringify())?;
+            state.serialize_field("include", &self.include.to_string())?;
         }
 
         if let Some(ref page) = self.page {
@@ -208,7 +208,7 @@ impl Serialize for Query {
         }
 
         if !self.sort.is_empty() {
-            state.serialize_field("sort", &self.sort.stringify())?;
+            state.serialize_field("sort", &self.sort.to_string())?;
         }
 
         state.end()

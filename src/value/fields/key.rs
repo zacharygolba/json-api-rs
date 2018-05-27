@@ -8,7 +8,6 @@ use serde::ser::{Serialize, Serializer};
 
 use error::Error;
 use sealed::Sealed;
-use value::Stringify;
 
 /// Represents a single member name.
 ///
@@ -199,12 +198,6 @@ impl Serialize for Key {
 }
 
 impl Sealed for Key {}
-
-impl Stringify for Key {
-    fn to_bytes(&self) -> Vec<u8> {
-        self.as_bytes().to_vec()
-    }
-}
 
 #[inline]
 fn as_lowercase(value: char) -> char {
