@@ -16,7 +16,7 @@ fi
 run cargo update
 run cargo build
 
-run_plugin fmt -- --check
+run_plugin stable fmt -- --check
 
 if [ $DEFAULT_TOOLCHAIN == $NIGHTLY ]; then
   run_plugin $NIGHTLY clippy --all
