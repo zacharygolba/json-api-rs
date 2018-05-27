@@ -16,7 +16,7 @@ fi
 run cargo update
 run cargo build
 
-run_plugin stable fmt -- --check
+run_plugin stable fmt -- --write-mode diff
 
 if [ $DEFAULT_TOOLCHAIN == $NIGHTLY ]; then
   run_plugin $NIGHTLY clippy --all
